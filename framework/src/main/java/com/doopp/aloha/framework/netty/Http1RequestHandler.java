@@ -7,20 +7,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
 public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-
-    @Inject
-    private Injector injector;
-
-    @Inject
-    @Named("executeGroup")
-    private EventLoopGroup executeGroup;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
@@ -47,18 +36,5 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         if (!HttpUtil.isKeepAlive(httpRequest)) {
             future.addListener(ChannelFutureListener.CLOSE);
         }
-
-        test();
-    }
-
-    private void test() throws ExecutionException, InterruptedException {
-
-        Future<String> f = executeGroup.submit(new Callable<String>() {
-            @Override
-            public String call() {
-                return "hello 51";
-            }
-        });
-        System.out.println(f.get());
     }
 }
