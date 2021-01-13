@@ -1,0 +1,3 @@
+rootProject.name = "aloha"
+include "framework"
+include "demo"

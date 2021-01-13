@@ -1,3 +1,4 @@
-# gutty
+# Aloha-framework
 
-Gutty 是一个基于 Guice 和 netty IOC 框架
+#### Description
+A fast framework on netty + Google Guice
