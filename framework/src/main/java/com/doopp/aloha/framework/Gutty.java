@@ -1,5 +1,7 @@
 package com.doopp.aloha.framework;
 
+import com.doopp.aloha.framework.annotation.Controller;
+import com.doopp.aloha.framework.annotation.Service;
 import com.google.inject.*;
 import com.google.inject.name.Names;
 import org.slf4j.Logger;
@@ -7,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -67,64 +70,80 @@ public class Gutty {
     }
 
     private void scanPackages() {
+        // init className List
+        List<Class<?>> classList = new ArrayList<>();
+        // loop basePackages
         for(String basePackage : basePackages) {
+            // package Path
+            Path packagePath = packagePath(basePackage);
+            // read
             try {
-                // URL resource = this.getClass().getResource("/" + basePackage.replace(".", "/"));
-                // System.out.println("resource.toString() : " + resource.toString());
-                // System.out.println("resource.toURI() : " + resource.toURI());
-                // System.out.println("resource.getFile() : " + resource.getFile());
-                // System.out.println("resource.getPath() : " + resource.getPath());
-                Path resourcePath = classResourcePath("/" + basePackage.replace(".", "/")).block();
-                if (resourcePath==null) {
-                    continue;
-                }
-                // System.out.println(resourcePath);
-                Files.walkFileTree(resourcePath, new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        String uriPath = file.toUri().toString();
-                        // System.out.println("file.toUri() : " + file.toUri());
-                        // System.out.println("file.toRealPath() : " + file.toRealPath());
-                        // System.out.println("file.toAbsolutePath() : " + file.toAbsolutePath());
-                        if (uriPath.endsWith(".class")) {
-                            int startIndexOf = uriPath.indexOf(basePackage.replace(".", "/"));
-                            int endIndexOf = uriPath.indexOf(".class");
-                            if (startIndexOf<0) {
-                                return FileVisitResult.CONTINUE;
+                        String classPath = file.toUri().getPath().replace("/", ".");
+                        if (!classPath.endsWith("$1.class")) {
+                            String className = classPath.substring(classPath.lastIndexOf(basePackage), classPath.length()-6);
+                            // add class to class list
+                            try {
+                                classList.add(Class.forName(className));
                             }
-                            String classPath = uriPath.substring(startIndexOf, endIndexOf);
-                            String className = classPath.replace("/", ".");
-                            logger.info();
+                            catch (ClassNotFoundException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
                         return FileVisitResult.CONTINUE;
                     }
                 });
             }
-            catch(Exception e) {
-                e.printStackTrace();
+            catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
+        // 将拿到的类的 LIST ，用来分析注解
+        executeAnnotation(classList);
     }
 
-//    public static Mono<java.nio.file.Path> classResourcePath(String resourceUri) {
-//        URL resource = ReactorGuiceServer.class.getResource(resourceUri);
-//        return Mono.fromCallable(()->{
-//            if (resource.getProtocol().equals("jar")) {
-//                String[] jarPathInfo = resource.getPath().split("!");
-//                if (jarPathInfo[0].startsWith("file:")) {
-//                    jarPathInfo[0] = java.io.File.separator.equals("\\")
-//                            ? jarPathInfo[0].substring(6)
-//                            : jarPathInfo[0].substring(5);
-//                }
-//                if (jarPathFS.get(jarPathInfo[0])==null || !jarPathFS.get(jarPathInfo[0]).isOpen()) {
-//                    java.nio.file.Path jarPath = Paths.get(jarPathInfo[0]);
-//                    jarPathFS.put(jarPathInfo[0], FileSystems.newFileSystem(jarPath, null));
-//                }
-//                return jarPathFS.get(jarPathInfo[0]).getPath(jarPathInfo[1]);
-//            }
-//            return Paths.get(resource.toURI());
-//        })
-//                .subscribeOn(Schedulers.boundedElastic())
-//                .onErrorResume(t->Mono.error(new StatusMessageException(404, "Not Found")));
-//    }
+    private Path packagePath(String basePackage) {
+        URL resourceURL = Gutty.class.getResource("/" + basePackage.replace(".", "/"));
+        // if (resourceURL.getProtocol().equals("jar")) {
+        //     String[] jarPathInfo = resourceURL.getPath().split("!");
+        //     if (jarPathInfo[0].startsWith("file:")) {
+        //         jarPathInfo[0] = java.io.File.separator.equals("\\") ? jarPathInfo[0].substring(6) : jarPathInfo[0].substring(5);
+        //     }
+        //     if (jarPathFS.get(jarPathInfo[0])==null || !jarPathFS.get(jarPathInfo[0]).isOpen()) {
+        //         java.nio.file.Path jarPath = Paths.get(jarPathInfo[0]);
+        //         jarPathFS.put(jarPathInfo[0], FileSystems.newFileSystem(jarPath, null));
+        //     }
+        //     return jarPathFS.get(jarPathInfo[0]).getPath(jarPathInfo[1]);
+        // }
+        return Paths.get(resourceURL.getPath());
+    }
+
+    private void executeAnnotation(List<Class<?>> classList) {
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                for(Class<?> clazz : classList) {
+                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class)) {
+                        if (clazz.getInterfaces().length>=1) {
+                            binder(clazz.getInterfaces()[0], clazz);
+                        }
+                        else {
+                            binder(clazz);
+                        }
+                    }
+                }
+            }
+            // bind class to interface
+            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
+                Class<T> clazzT = (Class<T>) clazz;
+                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+            }
+            // bind class
+            private <T> void binder(Class<T> clazz) {
+                bind(clazz).in(Scopes.SINGLETON);
+            }
+        });
+    }
 }
