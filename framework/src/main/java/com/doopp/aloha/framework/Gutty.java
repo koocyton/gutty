@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -139,6 +138,7 @@ public class Gutty {
             private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
                 Class<T> clazzT = (Class<T>) clazz;
                 bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                // .annotatedWith(Names.named("JDBC URL"))
             }
             // bind class
             private <T> void binder(Class<T> clazz) {
