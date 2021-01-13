@@ -1,13 +1,15 @@
 package com.doopp.aloha.demo.controller;
 
+import com.doopp.aloha.demo.service.HelloService;
 import com.doopp.aloha.framework.annotation.Controller;
 import com.google.inject.Inject;
 import io.netty.channel.EventLoopGroup;
 
 import javax.inject.Named;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
-@Path("")
+@Path("/api")
 @Controller
 public class HelloController {
 
@@ -15,8 +17,12 @@ public class HelloController {
     @Named("executeGroup")
     private EventLoopGroup executeGroup;
 
-    @Path("")
-    public String a() {
-        return null;
+    @Inject
+    private HelloService helloService;
+
+    @POST
+    @Path("/hello")
+    public String hello() {
+        return "";
     }
 }

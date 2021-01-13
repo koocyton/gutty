@@ -25,6 +25,7 @@ public class Gutty {
 
     private final List<String> basePackages = new ArrayList<>();
 
+    // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
         Properties properties = new Properties();
         for (String propertiesFile : propertiesFiles) {
@@ -48,19 +49,22 @@ public class Gutty {
         return this;
     }
 
+    // 添加 module 的接口
     public Gutty addModules(Module... modules) {
         Collections.addAll(this.modules, modules);
         return this;
     }
 
+    // 添加需要扫描的 package 的接口
     public Gutty basePackages(String... basePackages) {
         Collections.addAll(this.basePackages, basePackages);
         return this;
     }
 
+    // 启动服务
     public void start() {
         // scan packages && add project service
-        scanPackages();
+        scanService2Module();
         // load module
         Injector injector = Guice.createInjector(modules);
         // launch netty
@@ -68,7 +72,39 @@ public class Gutty {
         netty.run();
     }
 
-    private void scanPackages() {
+    // 扫描 @Service 和 @Controller
+    // 将他们加入到 Module 里给 injector 调用
+    private void scanService2Module() {
+        List<Class<?>> classList = scanClasses();
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                for(Class<?> clazz : classList) {
+                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class)) {
+                        if (clazz.getInterfaces().length>=1) {
+                            binder(clazz.getInterfaces()[0], clazz);
+                        }
+                        else {
+                            binder(clazz);
+                        }
+                    }
+                }
+            }
+            // bind class to interface
+            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
+                Class<T> clazzT = (Class<T>) clazz;
+                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                // .annotatedWith(Names.named("JDBC URL"))
+            }
+            // bind class
+            private <T> void binder(Class<T> clazz) {
+                bind(clazz).in(Scopes.SINGLETON);
+            }
+        });
+    }
+
+    // 将 Package 里扫描类
+    private List<Class<?>> scanClasses() {
         // init className List
         List<Class<?>> classList = new ArrayList<>();
         // loop basePackages
@@ -99,10 +135,11 @@ public class Gutty {
                 throw new RuntimeException(e);
             }
         }
-        // 将拿到的类的 LIST ，用来分析注解
-        executeAnnotation(classList);
+        //
+        return classList;
     }
 
+    // 获取资源
     private Path packagePath(String basePackage) {
         URL resourceURL = Gutty.class.getResource("/" + basePackage.replace(".", "/"));
         // if (resourceURL.getProtocol().equals("jar")) {
@@ -117,33 +154,5 @@ public class Gutty {
         //     return jarPathFS.get(jarPathInfo[0]).getPath(jarPathInfo[1]);
         // }
         return Paths.get(resourceURL.getPath());
-    }
-
-    private void executeAnnotation(List<Class<?>> classList) {
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                for(Class<?> clazz : classList) {
-                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class)) {
-                        if (clazz.getInterfaces().length>=1) {
-                            binder(clazz.getInterfaces()[0], clazz);
-                        }
-                        else {
-                            binder(clazz);
-                        }
-                    }
-                }
-            }
-            // bind class to interface
-            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
-                Class<T> clazzT = (Class<T>) clazz;
-                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
-                // .annotatedWith(Names.named("JDBC URL"))
-            }
-            // bind class
-            private <T> void binder(Class<T> clazz) {
-                bind(clazz).in(Scopes.SINGLETON);
-            }
-        });
     }
 }
