@@ -11,6 +11,9 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Inject
     private Dispatcher dispatcher;
 
+    @Inject
+    private Injector injector;
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
 
@@ -23,7 +26,7 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
 
         // dispatch
-        HttpResponse httpResponse = dispatcher.respondRequest(httpRequest);
+        HttpResponse httpResponse = dispatcher.respondRequest(injector, httpRequest);
         // httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
 
         if (HttpUtil.isKeepAlive(httpRequest)) {

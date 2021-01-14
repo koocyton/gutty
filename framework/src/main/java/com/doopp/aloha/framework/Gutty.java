@@ -180,7 +180,8 @@ public class Gutty {
                 Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        String classPath = file.toUri().getPath().replace("/", ".");
+                        // logger.info("file >>> {}", file.toUri());
+                        String classPath = file.toUri().toString().replace("/", ".");
                         if (!classPath.endsWith("$1.class")) {
                             String className = classPath.substring(classPath.lastIndexOf(basePackage), classPath.length()-6);
                             // add class to class list
@@ -206,17 +207,19 @@ public class Gutty {
     // 获取资源
     private Path packagePath(String basePackage) {
         URL resourceURL = Gutty.class.getResource("/" + basePackage.replace(".", "/"));
-        // if (resourceURL.getProtocol().equals("jar")) {
-        //     String[] jarPathInfo = resourceURL.getPath().split("!");
-        //     if (jarPathInfo[0].startsWith("file:")) {
-        //         jarPathInfo[0] = java.io.File.separator.equals("\\") ? jarPathInfo[0].substring(6) : jarPathInfo[0].substring(5);
-        //     }
-        //     if (jarPathFS.get(jarPathInfo[0])==null || !jarPathFS.get(jarPathInfo[0]).isOpen()) {
-        //         java.nio.file.Path jarPath = Paths.get(jarPathInfo[0]);
-        //         jarPathFS.put(jarPathInfo[0], FileSystems.newFileSystem(jarPath, null));
-        //     }
-        //     return jarPathFS.get(jarPathInfo[0]).getPath(jarPathInfo[1]);
-        // }
+        if (resourceURL.getProtocol().equals("jar")) {
+            String[] jarPathInfo = resourceURL.getPath().split("!");
+            if (jarPathInfo[0].startsWith("file:")) {
+                jarPathInfo[0] = java.io.File.separator.equals("\\") ? jarPathInfo[0].substring(6) : jarPathInfo[0].substring(5);
+            }
+            try {
+                FileSystem jarFileSystem = FileSystems.newFileSystem(Paths.get(jarPathInfo[0]), null);
+                return jarFileSystem.getPath(jarPathInfo[1]);
+            }
+            catch(IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return Paths.get(resourceURL.getPath());
     }
 }

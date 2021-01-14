@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -16,10 +18,9 @@ import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
 public class Dispatcher {
 
-    @Inject
-    private Injector injector;
+    private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-    Map<String, Route> routeMap = new HashMap<>();
+    private final Map<String, Route> routeMap = new HashMap<>();
 
     public void addRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
         String routeKey = httpMethodAnnotation.getSimpleName().toLowerCase()+":"+requestUri;
@@ -27,18 +28,18 @@ public class Dispatcher {
         routeMap.put(route.getKey(), route);
     }
 
-    public HttpResponse respondRequest (HttpRequest httpRequest) {
+    public HttpResponse respondRequest (Injector injector, HttpRequest httpRequest) {
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // execute route
-        byte[] result = this.executeRoute(httpRequest);
+        byte[] result = this.executeRoute(injector, httpRequest);
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
         return httpResponse;
     }
 
-    private byte[] executeRoute(HttpRequest httpRequest) {
+    private byte[] executeRoute(Injector injector, HttpRequest httpRequest) {
         // get route
         Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
         if (route==null) {
