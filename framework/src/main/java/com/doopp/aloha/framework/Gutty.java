@@ -3,6 +3,7 @@ package com.doopp.aloha.framework;
 import com.doopp.aloha.framework.annotation.Controller;
 import com.doopp.aloha.framework.annotation.Service;
 import com.google.inject.*;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.*;
@@ -82,7 +84,7 @@ public class Gutty {
     // 将 Controller 类加入到路由中
     private void controllerClass2Route(List<Class<?>> classList) {
         // route map
-        Map<String, Route> routeMap = new HashMap<>();
+        Dispatcher dispatcher = new Dispatcher();
         // loop
         for(Class<?> clazz : classList) {
             // 只分析 Controller
@@ -105,25 +107,30 @@ public class Gutty {
                     // 类上标注的 PATH
                     String methodPathValue = (methodPath.value().length() > 0) ? methodPath.value() : "";
                     // GET PUT POST DELETE (httpMethod)
-                    String httpMethodValue = GET.class.getName();
-                    if (method.getAnnotation(POST.class)!=null) {
-                        httpMethodValue = POST.class.getName();
+                    Class<? extends Annotation> httpMethodAnnotation = GET.class;
+                    if (method.isAnnotationPresent(POST.class)) {
+                        httpMethodAnnotation = POST.class;
                     }
                     else if (method.getAnnotation(DELETE.class)!=null) {
-                        httpMethodValue = DELETE.class.getName();
+                        httpMethodAnnotation = DELETE.class;
                     }
                     else if (method.getAnnotation(PUT.class)!=null) {
-                        httpMethodValue = PUT.class.getName();
+                        httpMethodAnnotation = PUT.class;
                     }
-                    if (method.getAnnotation(OPTIONS.class)!=null) {
-                        httpMethodValue = OPTIONS.class.getName();
+                    else if (method.getAnnotation(OPTIONS.class)!=null) {
+                        httpMethodAnnotation = OPTIONS.class;
                     }
-                    String requestUri = httpMethodValue +":"+ controllerPathValue + methodPathValue;
-                    Route route = new Route(clazz, method);
-                    routeMap.put(requestUri, route);
+                    dispatcher.addRoute(httpMethodAnnotation, controllerPathValue + methodPathValue, clazz, method, method.getParameters());
                 }
             }
         }
+        modules.add(new AbstractModule() {
+            @Singleton
+            @Provides
+            public Dispatcher dispatcher () {
+                return dispatcher;
+            }
+        });
     }
 
     // 扫描 @Service 和 @Controller

@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import io.netty.channel.EventLoopGroup;
 
 import javax.inject.Named;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 @Path("/api")
@@ -20,9 +20,15 @@ public class HelloController {
     @Inject
     private HelloService helloService;
 
-    @POST
+    @GET
     @Path("/hello")
     public String hello() {
-        return "";
+        return "hello";
+    }
+
+    @GET
+    @Path("/hello2")
+    public String hello2() {
+        return "hello2";
     }
 }
