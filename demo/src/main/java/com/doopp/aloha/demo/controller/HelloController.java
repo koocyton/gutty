@@ -23,7 +23,7 @@ public class HelloController {
     @GET
     @Path("/hello")
     public String hello() {
-        return "hello";
+        return helloService.hello();
     }
 
     @GET
