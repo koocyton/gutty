@@ -7,10 +7,13 @@ import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.*;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.*;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,19 +66,68 @@ public class Gutty {
 
     // 启动服务
     public void start() {
-        // scan packages && add project service
-        scanService2Module();
-        // load module
-        Injector injector = Guice.createInjector(modules);
+        // 获取包下的所有类
+        List<Class<?>> classList = classList();
+        // 将有注释的类添加到注入服务里
+        annotationClass2Injector(classList);
+        // 将 Controller 类加入到路由中
+        controllerClass2Route(classList);
         // launch netty
+        startNetty(Guice.createInjector(modules));
+    }
+
+    // 启动 netty
+    private void startNetty(Injector injector) {
         Netty netty = injector.getInstance(Netty.class);
         netty.run();
     }
 
+    // 将 Controller 类加入到路由中
+    private void controllerClass2Route(List<Class<?>> classList) {
+        for(Class<?> clazz : classList) {
+            // 只分析 Controller
+            if (clazz.isAnnotationPresent(Controller.class)) {
+                // controller path
+                javax.ws.rs.Path controllerPath = clazz.getAnnotation(javax.ws.rs.Path.class);
+                // 类上标注的 PATH
+                String controllerPathValue = "";
+                // 如果有值
+                if (controllerPath != null && controllerPath.value().length() > 0) {
+                    controllerPathValue = controllerPath.value();
+                }
+                // 查询 class.method
+                for (Method method : clazz.getMethods()) {
+                    // method path
+                    javax.ws.rs.Path methodPath = method.getAnnotation(javax.ws.rs.Path.class);
+                    if (methodPath==null) {
+                        continue;
+                    }
+                    // 类上标注的 PATH
+                    String methodPathValue = (methodPath.value().length() > 0) ? methodPath.value() : "";
+                    // GET PUT POST DELETE (httpMethod)
+                    String httpMethodValue = GET.class.getName();
+                    if (method.getAnnotation(POST.class)!=null) {
+                        httpMethodValue = POST.class.getName();
+                    }
+                    else if (method.getAnnotation(DELETE.class)!=null) {
+                        httpMethodValue = DELETE.class.getName();
+                    }
+                    else if (method.getAnnotation(PUT.class)!=null) {
+                        httpMethodValue = PUT.class.getName();
+                    }
+                    if (method.getAnnotation(OPTIONS.class)!=null) {
+                        httpMethodValue = OPTIONS.class.getName();
+                    }
+                    String requestUri = httpMethodValue +":"+ controllerPathValue + methodPathValue;
+                    logger.info("{} -> {}.{}()", requestUri, clazz, method);
+                }
+            }
+        }
+    }
+
     // 扫描 @Service 和 @Controller
     // 将他们加入到 Module 里给 injector 调用
-    private void scanService2Module() {
-        List<Class<?>> classList = scanClasses();
+    private void annotationClass2Injector(List<Class<?>> classList) {
         modules.add(new AbstractModule() {
             @Override
             protected void configure() {
@@ -85,7 +137,7 @@ public class Gutty {
                             binder(clazz.getInterfaces()[0], clazz);
                         }
                         else {
-                            binder(clazz);
+                            bind(clazz).in(Scopes.SINGLETON);
                         }
                     }
                 }
@@ -93,18 +145,22 @@ public class Gutty {
             // bind class to interface
             private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
                 Class<T> clazzT = (Class<T>) clazz;
-                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
-                // .annotatedWith(Names.named("JDBC URL"))
-            }
-            // bind class
-            private <T> void binder(Class<T> clazz) {
-                bind(clazz).in(Scopes.SINGLETON);
+                Service serviceAnnotation = clazzT.getAnnotation(Service.class);
+                if (serviceAnnotation!=null && !serviceAnnotation.value().equals("")) {
+                    bind(interfaceClazz)
+                            .annotatedWith(Names.named(serviceAnnotation.value()))
+                            .to(clazzT)
+                            .in(Scopes.SINGLETON);
+                }
+                else {
+                    bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                }
             }
         });
     }
 
     // 将 Package 里扫描类
-    private List<Class<?>> scanClasses() {
+    private List<Class<?>> classList() {
         // init className List
         List<Class<?>> classList = new ArrayList<>();
         // loop basePackages
