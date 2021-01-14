@@ -14,10 +14,6 @@ import javax.ws.rs.Path;
 public class HelloController {
 
     @Inject
-    @Named("executeGroup")
-    private EventLoopGroup executeGroup;
-
-    @Inject
     private HelloService helloService;
 
     @GET
