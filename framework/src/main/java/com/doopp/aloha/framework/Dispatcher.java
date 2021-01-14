@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -21,36 +22,44 @@ public class Dispatcher {
     Map<String, Route> routeMap = new HashMap<>();
 
     public void addRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
-        Route route = new Route(clazz, method, parameters);
         String routeKey = httpMethodAnnotation.getSimpleName().toLowerCase()+":"+requestUri;
-        routeMap.put(routeKey, route);
+        Route route = new Route(routeKey, clazz, method, parameters);
+        routeMap.put(route.getKey(), route);
     }
 
     public HttpResponse respondRequest (HttpRequest httpRequest) {
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-        // dispatch
-        Object result = this.executeRoute(httpRequest);
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result.toString().getBytes()));
+        // execute route
+        byte[] result = this.executeRoute(httpRequest);
+        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
         return httpResponse;
     }
 
-    private Object executeRoute(HttpRequest httpRequest) {
-        // dispatch
+    private byte[] executeRoute(HttpRequest httpRequest) {
+        // get route
         Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
-        // check route
         if (route==null) {
-            return null;
+            throw new RuntimeException("Oho ... Not found route target");
         }
-        //
+        // get controller
         Object controller = injector.getInstance(route.getClazz());
-        Object result = null;
-        if (controller != null) {
-            result = route.getMethod().invoke(controller);
+        if (controller==null) {
+            throw new RuntimeException("Oho ... Not found controller : " + route.getClazz());
         }
-        return result;
+        // method invoke
+        try {
+            Object result = route.getMethod().invoke(controller);
+            if (result instanceof String) {
+                return ((String) result).getBytes();
+            }
+        }
+        catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
 
@@ -59,13 +68,23 @@ public class Dispatcher {
     }
 
     public static class Route {
+        private String key;
         private Class<?> clazz;
         private Method method;
         private Parameter[] parameters;
-        Route(Class<?> clazz, Method method, Parameter[] parameters) {
+        private Route() {
+        }
+        Route(String key, Class<?> clazz, Method method, Parameter[] parameters) {
+            this.key = key;
             this.clazz = clazz;
             this.method = method;
             this.parameters = parameters;
+        }
+        public void setKey(String key) {
+            this.key = key;
+        }
+        public String getKey() {
+            return key;
         }
         public void setClazz(Class<?> clazz) {
             this.clazz = clazz;
