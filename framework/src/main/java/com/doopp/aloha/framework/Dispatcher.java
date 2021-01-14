@@ -63,6 +63,10 @@ public class Dispatcher {
         return null;
     }
 
+    private Object[] getParams() {
+        return null;
+    }
+
 
     private Route getRoute(HttpMethod httpMethod, String requestUri) {
         return routeMap.get(httpMethod.name().toLowerCase() + ":" + requestUri);

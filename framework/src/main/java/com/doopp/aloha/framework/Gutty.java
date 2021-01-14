@@ -206,27 +206,6 @@ public class Gutty {
 
     private static FileSystem jarFileSystem;
 
-//    private FileSystem jarFileSystem(String basePackage) {
-//        // if jar file system not null;
-//        if (jarFileSystem!=null) {
-//            return jarFileSystem;
-//        }
-//        URL resourceURL = Gutty.class.getResource("/" + basePackage.replace(".", "/"));
-//        if (resourceURL.getProtocol().equals("jar")) {
-//            String[] jarPathInfo = resourceURL.getPath().split("!");
-//            if (jarPathInfo[0].startsWith("file:")) {
-//                jarPathInfo[0] = java.io.File.separator.equals("\\") ? jarPathInfo[0].substring(6) : jarPathInfo[0].substring(5);
-//            }
-//            try {
-//                jarFileSystem = FileSystems.newFileSystem(Paths.get(jarPathInfo[0]), null);
-//                return jarFileSystem;
-//            }
-//            catch(IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-
     // 获取资源
     private Path packagePath(String basePackage) {
         URL resourceURL = Gutty.class.getResource("/" + basePackage.replace(".", "/"));
