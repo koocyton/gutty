@@ -15,10 +15,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class Gutty {
 
@@ -84,6 +81,9 @@ public class Gutty {
 
     // 将 Controller 类加入到路由中
     private void controllerClass2Route(List<Class<?>> classList) {
+        // route map
+        Map<String, Route> routeMap = new HashMap<>();
+        // loop
         for(Class<?> clazz : classList) {
             // 只分析 Controller
             if (clazz.isAnnotationPresent(Controller.class)) {
@@ -119,7 +119,8 @@ public class Gutty {
                         httpMethodValue = OPTIONS.class.getName();
                     }
                     String requestUri = httpMethodValue +":"+ controllerPathValue + methodPathValue;
-                    logger.info("{} -> {}.{}()", requestUri, clazz, method);
+                    Route route = new Route(clazz, method);
+                    routeMap.put(requestUri, route);
                 }
             }
         }
