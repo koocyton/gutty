@@ -1,6 +1,9 @@
 package com.doopp.aloha.framework;
 
-import io.netty.handler.codec.http.HttpMethod;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -8,7 +11,12 @@ import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+
 public class Dispatcher {
+
+    @Inject
+    private Injector injector;
 
     Map<String, Route> routeMap = new HashMap<>();
 
@@ -18,7 +26,35 @@ public class Dispatcher {
         routeMap.put(routeKey, route);
     }
 
-    public Route getRoute(HttpMethod httpMethod, String requestUri) {
+    public HttpResponse respondRequest (HttpRequest httpRequest) {
+        // init httpResponse
+        FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
+        // dispatch
+        Object result = this.executeRoute(httpRequest);
+        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result.toString().getBytes()));
+        // set length
+        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+        return httpResponse;
+    }
+
+    private Object executeRoute(HttpRequest httpRequest) {
+        // dispatch
+        Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
+        // check route
+        if (route==null) {
+            return null;
+        }
+        //
+        Object controller = injector.getInstance(route.getClazz());
+        Object result = null;
+        if (controller != null) {
+            result = route.getMethod().invoke(controller);
+        }
+        return result;
+    }
+
+
+    private Route getRoute(HttpMethod httpMethod, String requestUri) {
         return routeMap.get(httpMethod.name().toLowerCase() + ":" + requestUri);
     }
 
