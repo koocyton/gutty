@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 
 @Path("/api")
 @Controller
@@ -32,7 +33,8 @@ public class HelloController {
 
     @GET
     @Path("/hello2")
-    public String hello2() {
+    public String hello2(@QueryParam("liu") String liu) {
+        logger.info(liu);
         return "hello2";
     }
 }

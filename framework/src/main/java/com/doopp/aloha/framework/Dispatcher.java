@@ -13,6 +13,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,9 +80,9 @@ public class Dispatcher {
         // query params
         Map<String, Object> queryParamMap = ParamUtil.queryParamMap(httpRequest.uri());
         // form params
-        Map<String, Object> formParamMap = ParamUtil.formParamMap(httpRequest.content());
+        Map<String, byte[]> formParamMap = ParamUtil.formParamMap(httpRequest.content(), httpRequest);
         // file params
-        Map<String, File> fileParamMap = ParamUtil.fileParamMap(httpRequest.content());
+        Map<String, File> fileParamMap = ParamUtil.fileParamMap(httpRequest.content(), httpRequest);
 
         // loop params
         for (int ii=0; ii<params.length; ii++) {
@@ -122,7 +123,7 @@ public class Dispatcher {
             // FormParam
             else if (parameter.getAnnotation(FormParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FormParam.class).value();
-                params[ii] = formParamMap.get(annotationKey);
+                params[ii] = Arrays.toString(formParamMap.get(annotationKey));
             }
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {
@@ -139,6 +140,10 @@ public class Dispatcher {
 
 
     private Route getRoute(HttpMethod httpMethod, String requestUri) {
+        int indexOf = requestUri.indexOf("?");
+        if (indexOf!=-1) {
+            requestUri = requestUri.substring(0, indexOf);
+        }
         return routeMap.get(httpMethod.name().toLowerCase() + ":" + requestUri);
     }
 

@@ -1,17 +1,22 @@
 package com.doopp.aloha.framework;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class ParamUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(ParamUtil.class);
 
     static Map<String, Object> cookieMap(String cookieHeader) {
         // init request cookies
@@ -30,8 +35,17 @@ class ParamUtil {
     }
 
     static Map<String, Object> queryParamMap(String uri) {
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
         // init
         Map<String, Object> queryParamMap = new HashMap<>();
+        for (Map.Entry<String, List<String>> p : queryStringDecoder.parameters().entrySet()) {
+            String key = p.getKey().trim();
+            List<String> vals = p.getValue();
+            if (vals.size() > 0) {
+                String value = vals.get(0);
+                queryParamMap.put(key, value);
+            }
+        }
         return queryParamMap;
     }
 
@@ -41,9 +55,9 @@ class ParamUtil {
         return pathParamMap;
     }
 
-    static Map<String, Object> formParamMap(ByteBuf requestContent, FullHttpRequest httpRequest) {
+    static Map<String, byte[]> formParamMap(ByteBuf requestContent, FullHttpRequest httpRequest) {
         // init
-        Map<String, Object> formParamMap = new HashMap<>();
+        Map<String, byte[]> formParamMap = new HashMap<>();
         if (requestContent != null) {
             // set Request Decoder
             HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
@@ -52,20 +66,32 @@ class ParamUtil {
                 String name = data.getName();
                 // 表单
                 if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                    formParamMap.put(name, ((MemoryAttribute) data).getValue());
-                }
-                // 上传文件的内容
-                else if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-                    formParamMap.put(name, ((MemoryFileUpload) data).retain());
+                    formParamMap.put(name, ((MemoryAttribute) data).get());
                 }
             }
         }
         return formParamMap;
     }
 
-    static Map<String, File> fileParamMap(ByteBuf requestContent) {
+    static Map<String, File> fileParamMap(ByteBuf requestContent, FullHttpRequest httpRequest) {
         // init
-        Map<String, File> formParamMap = new HashMap<>();
-        return formParamMap;
+        Map<String, File> fileParamMap = new HashMap<>();
+        if (requestContent != null) {
+            // set Request Decoder
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
+            // loop data
+            for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
+                String name = data.getName();
+                // 上传文件的内容
+                if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                    try {
+                        fileParamMap.put(name, ((MemoryFileUpload) data).retain().getFile());
+                    }
+                    catch (IOException ignore) {
+                    }
+                }
+            }
+        }
+        return fileParamMap;
     }
 }
