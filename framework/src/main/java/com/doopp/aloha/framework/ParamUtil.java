@@ -41,33 +41,24 @@ class ParamUtil {
         return pathParamMap;
     }
 
-    static Map<String, Object> formParamMap(ByteBuf requestContent) {
+    static Map<String, Object> formParamMap(ByteBuf requestContent, FullHttpRequest httpRequest) {
         // init
         Map<String, Object> formParamMap = new HashMap<>();
-        if (requestContent != null && getRequestContentType(request).equals("")) {
-            // Request headers
-            // HttpHeaders requestHttpHeaders = request.requestHeaders();
-            // POST Params
-            FullHttpRequest dhr = new DefaultFullHttpRequest(request.version(), request.method(), request.uri(), content);
-            dhr.headers().set(request.requestHeaders());
+        if (requestContent != null) {
             // set Request Decoder
-            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), dhr, CharsetUtil.UTF_8);
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
             // loop data
             for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
                 String name = data.getName();
+                // 表单
                 if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                    formParams.computeIfAbsent(name, k -> new ArrayList<>())
-                            .add(((MemoryAttribute) data).getValue());
+                    formParamMap.put(name, ((MemoryAttribute) data).getValue());
                 }
                 // 上传文件的内容
                 else if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-                    fileParams.computeIfAbsent(name, k -> new ArrayList<>())
-                            .add(((MemoryFileUpload) data).retain());
+                    formParamMap.put(name, ((MemoryFileUpload) data).retain());
                 }
             }
-            postDecoder.destroy();
-            dhr.release();
-            // content.release();
         }
         return formParamMap;
     }
