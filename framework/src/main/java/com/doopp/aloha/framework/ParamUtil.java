@@ -1,8 +1,13 @@
 package com.doopp.aloha.framework;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.multipart.*;
+import io.netty.util.CharsetUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +44,31 @@ class ParamUtil {
     static Map<String, Object> formParamMap(ByteBuf requestContent) {
         // init
         Map<String, Object> formParamMap = new HashMap<>();
+        if (requestContent != null && getRequestContentType(request).equals("")) {
+            // Request headers
+            // HttpHeaders requestHttpHeaders = request.requestHeaders();
+            // POST Params
+            FullHttpRequest dhr = new DefaultFullHttpRequest(request.version(), request.method(), request.uri(), content);
+            dhr.headers().set(request.requestHeaders());
+            // set Request Decoder
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), dhr, CharsetUtil.UTF_8);
+            // loop data
+            for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
+                String name = data.getName();
+                if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                    formParams.computeIfAbsent(name, k -> new ArrayList<>())
+                            .add(((MemoryAttribute) data).getValue());
+                }
+                // 上传文件的内容
+                else if (name!=null && data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                    fileParams.computeIfAbsent(name, k -> new ArrayList<>())
+                            .add(((MemoryFileUpload) data).retain());
+                }
+            }
+            postDecoder.destroy();
+            dhr.release();
+            // content.release();
+        }
         return formParamMap;
     }
 
