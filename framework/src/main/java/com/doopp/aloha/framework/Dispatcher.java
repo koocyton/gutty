@@ -5,8 +5,6 @@ import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +29,7 @@ public class Dispatcher {
         routeMap.put(route.getKey(), route);
     }
 
-    public HttpResponse respondRequest (Injector injector, HttpRequest httpRequest) {
+    public HttpResponse respondRequest (Injector injector, FullHttpRequest httpRequest) {
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // execute route
@@ -42,7 +40,7 @@ public class Dispatcher {
         return httpResponse;
     }
 
-    private byte[] executeRoute(Injector injector, HttpRequest httpRequest, HttpResponse httpResponse) {
+    private byte[] executeRoute(Injector injector, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // get route
         Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
         if (route==null) {
@@ -54,43 +52,44 @@ public class Dispatcher {
             throw new RuntimeException("Oho ... Not found controller : " + route.getClazz());
         }
         // method invoke
+        Object result;
         try {
-            Object result = (route.getParameters().length==0)
-                    ? route.getMethod().invoke(controller)
-                    : route.getMethod().invoke(controller, getParams(route.getParameters(), httpRequest, httpResponse));
-            if (result instanceof String) {
-                return ((String) result).getBytes();
-            }
+            result = (route.getParameters().length==0) ? route.getMethod().invoke(controller) : route.getMethod().invoke(controller, getParams(route.getParameters(), httpRequest, httpResponse));
         }
         catch(Exception e) {
             throw new RuntimeException(e);
         }
-        return null;
+        // return
+        if (result instanceof String) {
+            return ((String) result).getBytes();
+        }
+        return result.toString().getBytes();
     }
 
-    private Object[] getParams(Parameter[] parameters, HttpRequest httpRequest, HttpResponse httpResponse) {
+    private Object[] getParams(Parameter[] parameters, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // init params
         Object[] params = new Object[parameters.length];
-        // get request headers
+        // headers
         HttpHeaders httpHeaders = httpRequest.headers();
-        // init request cookies
-        Map<String, Cookie> httpCookieMap = new HashMap<>();
-        if (httpHeaders.get("cookie")!=null) {
-            Cookie cookie = new DefaultCookie("", "");
-            httpCookieMap.put("", cookie);
-        }
-        // init request query params
-        Map<String, Object> queryParams = new HashMap<>();
+        // cookies
+        Map<String, Object> httpCookieMap = ParamUtil.cookieMap(httpHeaders.get("cookie"));
+        // path params
+        Map<String, Object> pathParamMap = ParamUtil.pathParamMap(httpRequest.uri());
+        // query params
+        Map<String, Object> queryParamMap = ParamUtil.queryParamMap(httpRequest.uri());
+        // form params
+        Map<String, Object> formParamMap = ParamUtil.formParamMap(httpRequest.content());
+
         // loop params
         for (int ii=0; ii<params.length; ii++) {
             Parameter parameter = parameters[ii];
             Class<?> parameterClazz = parameter.getType();
             // request
-            if (parameterClazz == HttpRequest.class) {
+            if (parameterClazz == HttpRequest.class || parameterClazz == FullHttpRequest.class) {
                 params[ii] = httpRequest;
             }
             // response
-            else if (parameterClazz == HttpResponse.class) {
+            else if (parameterClazz == HttpResponse.class || parameterClazz == FullHttpResponse.class) {
                 params[ii] = httpResponse;
             }
             // response
@@ -110,17 +109,17 @@ public class Dispatcher {
             // PathParam
             else if (parameter.getAnnotation(PathParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(PathParam.class).value();
-                params[ii] = null;
+                params[ii] = pathParamMap.get(annotationKey);
             }
             // QueryParam
             else if (parameter.getAnnotation(QueryParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(QueryParam.class).value();
-                params[ii] = queryParams.get(annotationKey);
+                params[ii] = queryParamMap.get(annotationKey);
             }
             // FormParam
             else if (parameter.getAnnotation(FormParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FormParam.class).value();
-                params[ii] = null;
+                params[ii] = formParamMap.get(annotationKey);
             }
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {

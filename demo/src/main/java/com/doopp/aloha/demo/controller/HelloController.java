@@ -6,9 +6,11 @@ import com.google.inject.Inject;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.cookie.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -17,13 +19,14 @@ import javax.ws.rs.Path;
 public class HelloController {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);
+
     @Inject
     private HelloService helloService;
 
     @GET
     @Path("/hello")
-    public String hello(HttpRequest httpRequest, HttpResponse httpResponse) {
-        logger.info("\nhttpRequest {}\nhttpResponse {}", httpRequest, httpResponse);
+    public String hello(@CookieParam("user") String user) {
+        logger.info(user);
         return helloService.hello();
     }
 

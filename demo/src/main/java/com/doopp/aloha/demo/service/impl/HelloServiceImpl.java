@@ -3,10 +3,7 @@ package com.doopp.aloha.demo.service.impl;
 import com.doopp.aloha.demo.service.HelloService;
 import com.doopp.aloha.framework.annotation.Service;
 
-import javax.inject.Named;
-
 @Service
-@Named("asdfsaf")
 public class HelloServiceImpl implements HelloService {
 
     @Override
