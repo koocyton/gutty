@@ -33,8 +33,8 @@ public class HelloController {
 
     @GET
     @Path("/hello2")
-    public String hello2(@QueryParam("liu") String liu) {
-        logger.info(liu);
+    public String hello2(@QueryParam("liu") Integer liu) {
+        logger.info("{}", liu);
         return "hello2";
     }
 }
