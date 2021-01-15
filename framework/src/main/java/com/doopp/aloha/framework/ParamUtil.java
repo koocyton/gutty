@@ -1,8 +1,8 @@
 package com.doopp.aloha.framework;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.FullHttpRequest;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +39,12 @@ class ParamUtil {
     static Map<String, Object> formParamMap(ByteBuf requestContent) {
         // init
         Map<String, Object> formParamMap = new HashMap<>();
+        return formParamMap;
+    }
+
+    static Map<String, File> fileParamMap(ByteBuf requestContent) {
+        // init
+        Map<String, File> formParamMap = new HashMap<>();
         return formParamMap;
     }
 }

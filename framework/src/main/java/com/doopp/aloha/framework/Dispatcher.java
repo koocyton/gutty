@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -79,6 +80,8 @@ public class Dispatcher {
         Map<String, Object> queryParamMap = ParamUtil.queryParamMap(httpRequest.uri());
         // form params
         Map<String, Object> formParamMap = ParamUtil.formParamMap(httpRequest.content());
+        // file params
+        Map<String, File> fileParamMap = ParamUtil.fileParamMap(httpRequest.content());
 
         // loop params
         for (int ii=0; ii<params.length; ii++) {
@@ -124,7 +127,7 @@ public class Dispatcher {
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FileParam.class).value();
-                params[ii] = null;
+                params[ii] = fileParamMap.get(annotationKey);
             }
             // null
             else {
