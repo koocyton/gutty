@@ -1,13 +1,16 @@
 package com.doopp.aloha.framework;
 
-import com.google.inject.Inject;
+import com.doopp.aloha.framework.annotation.FileParam;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import javax.ws.rs.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -32,14 +35,14 @@ public class Dispatcher {
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // execute route
-        byte[] result = this.executeRoute(injector, httpRequest);
+        byte[] result = executeRoute(injector, httpRequest, httpResponse);
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
         return httpResponse;
     }
 
-    private byte[] executeRoute(Injector injector, HttpRequest httpRequest) {
+    private byte[] executeRoute(Injector injector, HttpRequest httpRequest, HttpResponse httpResponse) {
         // get route
         Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
         if (route==null) {
@@ -52,7 +55,9 @@ public class Dispatcher {
         }
         // method invoke
         try {
-            Object result = route.getMethod().invoke(controller);
+            Object result = (route.getParameters().length==0)
+                    ? route.getMethod().invoke(controller)
+                    : route.getMethod().invoke(controller, getParams(route.getParameters(), httpRequest, httpResponse));
             if (result instanceof String) {
                 return ((String) result).getBytes();
             }
@@ -63,8 +68,71 @@ public class Dispatcher {
         return null;
     }
 
-    private Object[] getParams() {
-        return null;
+    private Object[] getParams(Parameter[] parameters, HttpRequest httpRequest, HttpResponse httpResponse) {
+        // init params
+        Object[] params = new Object[parameters.length];
+        // get request headers
+        HttpHeaders httpHeaders = httpRequest.headers();
+        // init request cookies
+        Map<String, Cookie> httpCookieMap = new HashMap<>();
+        if (httpHeaders.get("cookie")!=null) {
+            Cookie cookie = new DefaultCookie("", "");
+            httpCookieMap.put("", cookie);
+        }
+        // init request query params
+        Map<String, Object> queryParams = new HashMap<>();
+        // loop params
+        for (int ii=0; ii<params.length; ii++) {
+            Parameter parameter = parameters[ii];
+            Class<?> parameterClazz = parameter.getType();
+            // request
+            if (parameterClazz == HttpRequest.class) {
+                params[ii] = httpRequest;
+            }
+            // response
+            else if (parameterClazz == HttpResponse.class) {
+                params[ii] = httpResponse;
+            }
+            // response
+            else if (parameterClazz == HttpHeaders.class) {
+                params[ii] = httpRequest.headers();
+            }
+            // CookieParam : Set<Cookie>
+            else if (parameter.getAnnotation(CookieParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(CookieParam.class).value();
+                params[ii] = httpCookieMap.get(annotationKey);
+            }
+            // HeaderParam : String
+            else if (parameter.getAnnotation(HeaderParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(HeaderParam.class).value();
+                params[ii] = httpRequest.headers().get(annotationKey);
+            }
+            // PathParam
+            else if (parameter.getAnnotation(PathParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(PathParam.class).value();
+                params[ii] = null;
+            }
+            // QueryParam
+            else if (parameter.getAnnotation(QueryParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(QueryParam.class).value();
+                params[ii] = queryParams.get(annotationKey);
+            }
+            // FormParam
+            else if (parameter.getAnnotation(FormParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(FormParam.class).value();
+                params[ii] = null;
+            }
+            // upload file
+            else if (parameter.getAnnotation(FileParam.class) != null) {
+                String annotationKey = parameter.getAnnotation(FileParam.class).value();
+                params[ii] = null;
+            }
+            // null
+            else {
+                params[ii] = null;
+            }
+        }
+        return params;
     }
 
 
