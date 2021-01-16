@@ -9,9 +9,6 @@ import io.netty.handler.codec.http.*;
 public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Inject
-    private Dispatcher dispatcher;
-
-    @Inject
     private Injector injector;
 
     @Override
@@ -26,7 +23,7 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
 
         // dispatch
-        HttpResponse httpResponse = dispatcher.respondRequest(injector, httpRequest);
+        HttpResponse httpResponse = Dispatcher.singleBuilder().respondRequest(injector, httpRequest);
         // httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
 
         if (HttpUtil.isKeepAlive(httpRequest)) {

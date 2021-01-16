@@ -84,7 +84,7 @@ public class Gutty {
     // 将 Controller 类加入到路由中
     private void controllerClass2Route(List<Class<?>> classList) {
         // route map
-        Dispatcher dispatcher = new Dispatcher();
+        Dispatcher dispatcher = Dispatcher.singleBuilder();
         // loop
         for(Class<?> clazz : classList) {
             // 只分析 Controller
@@ -124,13 +124,6 @@ public class Gutty {
                 }
             }
         }
-        modules.add(new AbstractModule() {
-            @Singleton
-            @Provides
-            public Dispatcher dispatcher () {
-                return dispatcher;
-            }
-        });
     }
 
     // 扫描 @Service 和 @Controller
