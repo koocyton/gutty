@@ -1,7 +1,6 @@
 package com.doopp.aloha.framework;
 
 import com.doopp.aloha.framework.annotation.FileParam;
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
@@ -38,31 +37,33 @@ class ParamUtil {
     }
 
     // http headers
-    private HttpHeaders httpHeaders;
+    private Map<String, String> headerParams = new HashMap<>();
     // cookies
-    private Map<String, String> cookieParams = new HashMap<>();
+    private Map<String, String[]> cookieParams = new HashMap<>();
     // path params
-    private Map<String, String> pathParams = new HashMap<>();
+    private Map<String, String[]> pathParams = new HashMap<>();
     // query params
-    private Map<String, String> queryParams = new HashMap<>();
+    private Map<String, String[]> queryParams = new HashMap<>();
     // form params
     private Map<String, byte[]> formParams = new HashMap<>();
     // file params
-    private Map<String, File> fileParams = new HashMap<>();
+    private Map<String, File[]> fileParams = new HashMap<>();
 
     private FullHttpRequest httpRequest;
     private FullHttpResponse httpResponse;
 
     private Object[] getParams(Parameter[] parameters, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // build data
-        this.httpRequest   = httpRequest;
-        this.httpResponse  = httpResponse;
-        this.buildHeaderParams();
-        this.buildCookieParams();
-        this.buildPathParams();
-        this.buildQueryParams();
-        this.buildFormParams();
-        this.buildFileParams();
+        if (httpRequest!=null){
+            this.httpRequest = httpRequest;
+            this.httpResponse = httpResponse;
+            this.buildHeaderParams();
+            this.buildCookieParams();
+            this.buildPathParams();
+            this.buildQueryParams();
+            this.buildFormParams();
+            this.buildFileParams();
+        }
 
         Object[] params = new Object[parameters.length];
         // loop params
@@ -183,11 +184,15 @@ class ParamUtil {
     }
 
     private void buildHeaderParams() {
-        this.httpHeaders = httpRequest.headers();
+        if (httpRequest.headers()!=null) {
+            for (Map.Entry<String, String> header : httpRequest.headers()) {
+                headerParams.put(header.getKey(), header.getValue());
+            }
+        }
     }
 
     private void buildCookieParams() {
-        if (httpRequest.headers()!=null && httpRequest.headers().get("cookie")!=null) {
+        if (httpRequest.headers().get("cookie")!=null) {
             String[] allCookie = httpRequest.headers().get("cookie").split(";");
             for(String cookie : allCookie) {
                 int iof = cookie.indexOf("=");
