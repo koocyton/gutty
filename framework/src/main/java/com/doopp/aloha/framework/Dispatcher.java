@@ -65,7 +65,7 @@ public class Dispatcher {
         try {
             result = (route.getParameters().length==0)
                     ? route.getMethod().invoke(controller)
-                    : route.getMethod().invoke(controller, ParamUtil.buildParams(route.getParameters(), httpRequest, httpResponse));
+                    : route.getMethod().invoke(controller, HttpParam.singleBuilder(httpRequest, httpResponse).getParams(route.getParameters()));
         }
         catch(Exception e) {
             throw new RuntimeException(e);
