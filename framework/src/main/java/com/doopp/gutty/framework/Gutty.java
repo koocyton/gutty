@@ -1,9 +1,8 @@
-package com.doopp.aloha.framework;
+package com.doopp.gutty.framework;
 
-import com.doopp.aloha.framework.annotation.Controller;
-import com.doopp.aloha.framework.annotation.Service;
+import com.doopp.gutty.framework.annotation.Controller;
+import com.doopp.gutty.framework.annotation.Service;
 import com.google.inject.*;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

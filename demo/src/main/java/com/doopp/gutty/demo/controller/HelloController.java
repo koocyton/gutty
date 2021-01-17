@@ -1,12 +1,8 @@
-package com.doopp.aloha.demo.controller;
+package com.doopp.gutty.demo.controller;
 
-import com.doopp.aloha.demo.service.HelloService;
-import com.doopp.aloha.framework.annotation.Controller;
+import com.doopp.gutty.demo.service.HelloService;
+import com.doopp.gutty.framework.annotation.Controller;
 import com.google.inject.Inject;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.cookie.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

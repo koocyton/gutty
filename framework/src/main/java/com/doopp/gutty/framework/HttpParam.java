@@ -1,6 +1,6 @@
-package com.doopp.aloha.framework;
+package com.doopp.gutty.framework;
 
-import com.doopp.aloha.framework.annotation.FileParam;
+import com.doopp.gutty.framework.annotation.FileParam;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
@@ -92,27 +92,27 @@ class HttpParam {
             // CookieParam : Set<Cookie>
             else if (parameter.getAnnotation(CookieParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(CookieParam.class).value();
-                params[ii] = stringCastValue(cookieParams.get(annotationKey), parameterClazz);
+                params[ii] = paramCase(cookieParams.get(annotationKey), parameterClazz);
             }
             // HeaderParam : String
             else if (parameter.getAnnotation(HeaderParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(HeaderParam.class).value();
-                params[ii] = stringCastValue(headerParams.get(annotationKey), parameterClazz);
+                params[ii] = paramCase(headerParams.get(annotationKey), parameterClazz);
             }
             // PathParam
             else if (parameter.getAnnotation(PathParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(PathParam.class).value();
-                params[ii] = stringCastValue(pathParams.get(annotationKey), parameterClazz);
+                params[ii] = paramCase(pathParams.get(annotationKey), parameterClazz);
             }
             // QueryParam
             else if (parameter.getAnnotation(QueryParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(QueryParam.class).value();
-                params[ii] = arrayCastValue(queryParams.get(annotationKey), parameterClazz);
+                params[ii] = paramCase(queryParams.get(annotationKey), parameterClazz);
             }
             // FormParam
             else if (parameter.getAnnotation(FormParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FormParam.class).value();
-                params[ii] = listCastValue(formParams.get(annotationKey), parameterClazz);
+                params[ii] = paramCase(formParams.get(annotationKey), parameterClazz);
             }
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {
@@ -133,16 +133,30 @@ class HttpParam {
         return params;
     }
 
-    private <T> T listCastValue(List<String> values, Class<T> clazz) {
-        if (values==null || values.size()<1) {
+    private <T> T paramCase(Object object, Class<T> clazz) {
+        if (object==null) {
             return null;
         }
-        return arrayCastValue(values.toArray(new String[0]), clazz);
+        // Array
+        if (clazz.isArray()) {
+            return arrayParamCase((String[]) object, clazz);
+        }
+        // List
+        else if (List.class.isAssignableFrom(clazz)) { // || clazz.newInstance() instanceof List) {
+            return listParamCase((List<String>) object, clazz);
+        }
+        // default
+        else {
+            return baseParamCase((String) object, clazz);
+        }
     }
 
-    private <T> T stringCastValue(String value, Class<T> clazz) {
+    private <T> T baseParamCase(String value, Class<T> clazz) {
+        if (value==null) {
+            return null;
+        }
         // Long
-        if (clazz == Long.class || clazz==long.class) {
+        else if (clazz == Long.class || clazz==long.class) {
             return clazz.cast(Long.valueOf(value));
         }
         // Integer
@@ -167,47 +181,25 @@ class HttpParam {
         }
         // Short
         else if (clazz == Short.class || clazz==short.class) {
-            return clazz.cast(Short.valueOf(value));
+            return clazz.cast(Short.valueOf(values[0]));
         }
         else {
-            return null;
+            return clazz.cast(values[0]);
         }
     }
 
-    private <T> T arrayCastValue(String[] values, Class<T> clazz) {
+    private <T> T listParamCase(List<String> values, Class<T> clazz) {
+        if (values==null || values.size()<1) {
+            return null;
+        }
+        return paramCase(values.toArray(new String[0]), clazz);
+    }
+
+    private <T> T arrayParamCase(String[] values, Class<T> clazz) {
         if (values==null || values.length<1) {
             return null;
         }
-        // Long
-        else if (clazz == Long.class || clazz==long.class) {
-            return clazz.cast(Long.valueOf(values[0]));
-        }
-        // Integer
-        else if (clazz == Integer.class || clazz==int.class) {
-            return clazz.cast(Integer.valueOf(values[0]));
-        }
-        // Boolean
-        else if (clazz == Boolean.class || clazz==boolean.class) {
-            return clazz.cast(Boolean.valueOf(values[0]));
-        }
-        // String
-        else if (clazz == String.class) {
-            return clazz.cast(values[0]);
-        }
-        // Float
-        else if (clazz == Float.class || clazz==float.class) {
-            return clazz.cast(Float.valueOf(values[0]));
-        }
-        // Double
-        else if (clazz == Double.class || clazz==double.class) {
-            return clazz.cast(Double.valueOf(values[0]));
-        }
-        // Short
-        else if (clazz == Short.class || clazz==short.class) {
-            return clazz.cast(Short.valueOf(values[0]));
-        }
-        // Long[]
-        else if (clazz == Long[].class || clazz==long[].class) {
+        if (clazz == Long[].class || clazz==long[].class) {
             Long[] longArray = new Long[values.length];
             for (int ii=0; ii<values.length; ii++) {
                 longArray[ii] = Long.valueOf(values[ii]);
@@ -225,16 +217,6 @@ class HttpParam {
         // String[]
         else if (clazz == String[].class) {
             return clazz.cast(values);
-        }
-        else if (clazz.isArray() || List.class.isAssignableFrom(clazz) || clazz.newInstance() instanceof List) {
-            List<T> newList = new ArrayList<>();
-            for (String value : values) {
-                newList.add(clazz.cast(value));
-            }
-            return clazz.isArray() ? clazz.cast(newList.toArray()) : clazz.cast(newList);
-        }
-        else {
-            return clazz.cast(values[0]);
         }
     }
 

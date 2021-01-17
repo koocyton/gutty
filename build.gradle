@@ -1,5 +1,5 @@
 allprojects {
-	group 'com.doopp.aloha'
+	group 'com.doopp.gutty'
 	version '1.0'
 
 	apply plugin: 'java'
@@ -99,7 +99,7 @@ project(':demo') {
 		manifest {
 			attributes(
 					"Manifest-Version": 1.0,
-					"Main-Class": "com.doopp.aloha.demo.MVCApplication",
+					"Main-Class": "com.doopp.gutty.demo.MVCApplication",
 					"Class-Path": "./",
 					"Implementation-Title": "Gradle"
 			)

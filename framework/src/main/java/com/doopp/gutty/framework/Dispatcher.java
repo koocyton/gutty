@@ -1,4 +1,4 @@
-package com.doopp.aloha.framework;
+package com.doopp.gutty.framework;
 
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;

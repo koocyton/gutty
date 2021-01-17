@@ -1,6 +1,6 @@
-package com.doopp.aloha.framework.netty;
+package com.doopp.gutty.framework.netty;
 
-import com.doopp.aloha.framework.Dispatcher;
+import com.doopp.gutty.framework.Dispatcher;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.netty.channel.*;

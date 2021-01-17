@@ -1,6 +1,6 @@
-package com.doopp.aloha.framework;
+package com.doopp.gutty.framework;
 
-import com.doopp.aloha.framework.netty.Http1RequestHandler;
+import com.doopp.gutty.framework.netty.Http1RequestHandler;
 import com.google.inject.*;
 import com.google.inject.name.Named;
 import io.netty.bootstrap.ServerBootstrap;

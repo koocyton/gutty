@@ -1,12 +1,6 @@
-package com.doopp.aloha.demo;
+package com.doopp.gutty.demo;
 
-import com.doopp.aloha.framework.Gutty;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import com.doopp.gutty.framework.Gutty;
 
 public class MVCApplication {
 

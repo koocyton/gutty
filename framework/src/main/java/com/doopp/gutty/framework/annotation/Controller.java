@@ -1,4 +1,4 @@
-package com.doopp.aloha.framework.annotation;
+package com.doopp.gutty.framework.annotation;
 
 import java.lang.annotation.*;
 
