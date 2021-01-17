@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
-import java.util.List;
+import java.util.Arrays;
 
 @Path("/api")
 @Controller
@@ -27,8 +27,8 @@ public class HelloController {
 
     @POST
     @Path("/hello")
-    public String hello2(@FormParam("liu") List<Integer> liu) {
-        logger.info("{}", liu);
+    public String hello2(@FormParam("liu") Integer[] liu) {
+        logger.info("{}", Arrays.asList(liu));
         return "hello2";
     }
 }

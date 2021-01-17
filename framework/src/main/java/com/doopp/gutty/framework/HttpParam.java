@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 class HttpParam {
@@ -40,7 +42,7 @@ class HttpParam {
     // path params
     private Map<String, String> pathParams;
     // query params
-    private Map<String, String[]> queryParams;
+    private Map<String, List<String>> queryParams;
     // form params
     private Map<String, List<String>> formParams;
     // file params
@@ -92,34 +94,34 @@ class HttpParam {
             // CookieParam : Set<Cookie>
             else if (parameter.getAnnotation(CookieParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(CookieParam.class).value();
-                params[ii] = paramCase(cookieParams.get(annotationKey), parameterClazz);
+                params[ii] = baseParamCase(cookieParams.get(annotationKey), parameterClazz);
             }
             // HeaderParam : String
             else if (parameter.getAnnotation(HeaderParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(HeaderParam.class).value();
-                params[ii] = paramCase(headerParams.get(annotationKey), parameterClazz);
+                params[ii] = baseParamCase(headerParams.get(annotationKey), parameterClazz);
             }
             // PathParam
             else if (parameter.getAnnotation(PathParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(PathParam.class).value();
-                params[ii] = paramCase(pathParams.get(annotationKey), parameterClazz);
+                params[ii] = baseParamCase(pathParams.get(annotationKey), parameterClazz);
             }
             // QueryParam
             else if (parameter.getAnnotation(QueryParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(QueryParam.class).value();
-                params[ii] = paramCase(queryParams.get(annotationKey), parameterClazz);
+                params[ii] = listParamCase(queryParams.get(annotationKey), parameterClazz);
             }
             // FormParam
             else if (parameter.getAnnotation(FormParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FormParam.class).value();
-                params[ii] = paramCase(formParams.get(annotationKey), parameterClazz);
+                params[ii] = listParamCase(formParams.get(annotationKey), parameterClazz);
             }
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(FileParam.class).value();
                 String annotationPath = parameter.getAnnotation(FileParam.class).path();
                 try {
-                    params[ii] = fileCastValue(fileParams.get(annotationKey), annotationPath, parameterClazz);
+                    params[ii] = fileParamCast(fileParams.get(annotationKey), annotationPath, parameterClazz);
                 }
                 catch (IOException e) {
                     throw new RuntimeException(e);
@@ -131,24 +133,6 @@ class HttpParam {
             }
         }
         return params;
-    }
-
-    private <T> T paramCase(Object object, Class<T> clazz) {
-        if (object==null) {
-            return null;
-        }
-        // Array
-        if (clazz.isArray()) {
-            return arrayParamCase((String[]) object, clazz);
-        }
-        // List
-        else if (List.class.isAssignableFrom(clazz)) { // || clazz.newInstance() instanceof List) {
-            return listParamCase((List<String>) object, clazz);
-        }
-        // default
-        else {
-            return baseParamCase((String) object, clazz);
-        }
     }
 
     private <T> T baseParamCase(String value, Class<T> clazz) {
@@ -181,46 +165,76 @@ class HttpParam {
         }
         // Short
         else if (clazz == Short.class || clazz==short.class) {
-            return clazz.cast(Short.valueOf(values[0]));
+            return clazz.cast(Short.valueOf(value));
         }
         else {
-            return clazz.cast(values[0]);
+            return clazz.cast(value);
         }
     }
 
     private <T> T listParamCase(List<String> values, Class<T> clazz) {
-        if (values==null || values.size()<1) {
+        if (values == null || values.size() < 1) {
             return null;
         }
-        return paramCase(values.toArray(new String[0]), clazz);
+        // List.class.isAssignableFrom(clazz)
+        if (clazz.isArray()) {
+            // Long
+            if (clazz == Long[].class || clazz==long[].class) {
+                List<Long> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Long.class));
+                }
+                return clazz.cast(resultList.toArray(new Long[0]));
+            }
+            // Integer
+            else if (clazz == Integer[].class || clazz==int[].class) {
+                List<Integer> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Integer.class));
+                }
+                return clazz.cast(resultList.toArray(new Integer[0]));
+            }
+            // Boolean
+            else if (clazz == Boolean[].class || clazz==boolean[].class) {
+                List<Boolean> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Boolean.class));
+                }
+                return clazz.cast(resultList.toArray(new Boolean[0]));
+            }
+            // String
+            else if (clazz == String[].class) {
+                return clazz.cast(values);
+            }
+            // Float
+            else if (clazz == Float[].class || clazz==float[].class) {
+                List<Float> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Float.class));
+                }
+                return clazz.cast(resultList.toArray(new Float[0]));
+            }
+            // Double
+            else if (clazz == Double[].class || clazz==double[].class) {
+                List<Double> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Double.class));
+                }
+                return clazz.cast(resultList.toArray(new Double[0]));
+            }
+            // Short
+            else if (clazz == Short[].class || clazz==short[].class) {
+                List<Short> resultList = new ArrayList<>();
+                for (int ii=0; ii<values.size(); ii++) {
+                    resultList.add(ii, baseParamCase(values.get(ii), Short.class));
+                }
+                return clazz.cast(resultList.toArray(new Short[0]));
+            }
+        }
+        return baseParamCase(values.get(0), clazz);
     }
 
-    private <T> T arrayParamCase(String[] values, Class<T> clazz) {
-        if (values==null || values.length<1) {
-            return null;
-        }
-        if (clazz == Long[].class || clazz==long[].class) {
-            Long[] longArray = new Long[values.length];
-            for (int ii=0; ii<values.length; ii++) {
-                longArray[ii] = Long.valueOf(values[ii]);
-            }
-            return clazz.cast(longArray);
-        }
-        // Integer[]
-        else if (clazz == Integer[].class || clazz==int[].class) {
-            Integer[] intArray = new Integer[values.length];
-            for (int ii=0; ii<values.length; ii++) {
-                intArray[ii] = Integer.valueOf(values[ii]);
-            }
-            return clazz.cast(intArray);
-        }
-        // String[]
-        else if (clazz == String[].class) {
-            return clazz.cast(values);
-        }
-    }
-
-    private <T> T fileCastValue(List<FileUpload> fileParams, String path, Class<T> clazz) throws IOException {
+    private <T> T fileParamCast(List<FileUpload> fileParams, String path, Class<T> clazz) throws IOException {
         // if fileParams is null
         if (fileParams == null) {
             return clazz.cast(null);
@@ -313,7 +327,7 @@ class HttpParam {
     private void buildQueryParams() {
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(this.httpRequest.uri());
         for (Map.Entry<String, List<String>> p : queryStringDecoder.parameters().entrySet()) {
-            queryParams.put(p.getKey().trim(), p.getValue().toArray(new String[0]));
+            queryParams.put(p.getKey().trim(), p.getValue());
         }
     }
 
@@ -339,7 +353,6 @@ class HttpParam {
                             .add(((MemoryFileUpload) data).retain());
                 }
             }
-            logger.info("formParams {}", formParams);
             postDecoder.destroy();
         }
     }
