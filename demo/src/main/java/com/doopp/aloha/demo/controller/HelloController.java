@@ -10,10 +10,8 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import java.util.List;
 
 @Path("/api")
 @Controller
@@ -31,9 +29,9 @@ public class HelloController {
         return helloService.hello();
     }
 
-    @GET
-    @Path("/hello2")
-    public String hello2(@QueryParam("liu") String liu) {
+    @POST
+    @Path("/hello")
+    public String hello2(@FormParam("liu") List<Integer> liu) {
         logger.info("{}", liu);
         return "hello2";
     }

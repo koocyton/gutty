@@ -34,19 +34,36 @@ class HttpParam {
     }
 
     // http headers
-    private final Map<String, String> headerParams = new HashMap<>();
+    private Map<String, String> headerParams;
     // cookies
-    private final Map<String, String> cookieParams = new HashMap<>();
+    private Map<String, String> cookieParams;
     // path params
-    private final Map<String, String> pathParams = new HashMap<>();
+    private Map<String, String> pathParams;
     // query params
-    private final Map<String, String[]> queryParams = new HashMap<>();
+    private Map<String, String[]> queryParams;
     // form params
-    private final Map<String, List<String>> formParams = new HashMap<>();
+    private Map<String, List<String>> formParams;
     // file params
-    private final Map<String, List<FileUpload>> fileParams = new HashMap<>();
+    private Map<String, List<FileUpload>> fileParams;
+
+    private void resetParams() {
+        // http headers
+        headerParams = new HashMap<>();
+        // cookies
+        cookieParams = new HashMap<>();
+        // path params
+        pathParams = new HashMap<>();
+        // query params
+        queryParams = new HashMap<>();
+        // form params
+        formParams = new HashMap<>();
+        // file params
+        fileParams = new HashMap<>();
+    }
 
     public Object[] getParams(Parameter[] parameters) {
+
+        this.resetParams();
 
         this.buildHeaderParams();
         this.buildCookieParams();
@@ -124,30 +141,100 @@ class HttpParam {
     }
 
     private <T> T stringCastValue(String value, Class<T> clazz) {
-        if (value==null) {
+        // Long
+        if (clazz == Long.class || clazz==long.class) {
+            return clazz.cast(Long.valueOf(value));
+        }
+        // Integer
+        else if (clazz == Integer.class || clazz==int.class) {
+            return clazz.cast(Integer.valueOf(value));
+        }
+        // Boolean
+        else if (clazz == Boolean.class || clazz==boolean.class) {
+            return clazz.cast(Boolean.valueOf(value));
+        }
+        // String
+        else if (clazz == String.class) {
+            return clazz.cast(value);
+        }
+        // Float
+        else if (clazz == Float.class || clazz==float.class) {
+            return clazz.cast(Float.valueOf(value));
+        }
+        // Double
+        else if (clazz == Double.class || clazz==double.class) {
+            return clazz.cast(Double.valueOf(value));
+        }
+        // Short
+        else if (clazz == Short.class || clazz==short.class) {
+            return clazz.cast(Short.valueOf(value));
+        }
+        else {
             return null;
         }
-        return arrayCastValue(new String[]{value}, clazz);
     }
 
     private <T> T arrayCastValue(String[] values, Class<T> clazz) {
         if (values==null || values.length<1) {
             return null;
         }
-        try {
-            if (clazz.isArray() || List.class.isAssignableFrom(clazz) || clazz.newInstance() instanceof List) {
-                List<T> newList = new ArrayList<>();
-                for (String value : values) {
-                    newList.add(clazz.cast(value));
-                }
-                return clazz.isArray() ? clazz.cast(newList.toArray()) : clazz.cast(newList);
-            }
-            else {
-                return clazz.cast(values[0]);
-            }
+        // Long
+        else if (clazz == Long.class || clazz==long.class) {
+            return clazz.cast(Long.valueOf(values[0]));
         }
-        catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        // Integer
+        else if (clazz == Integer.class || clazz==int.class) {
+            return clazz.cast(Integer.valueOf(values[0]));
+        }
+        // Boolean
+        else if (clazz == Boolean.class || clazz==boolean.class) {
+            return clazz.cast(Boolean.valueOf(values[0]));
+        }
+        // String
+        else if (clazz == String.class) {
+            return clazz.cast(values[0]);
+        }
+        // Float
+        else if (clazz == Float.class || clazz==float.class) {
+            return clazz.cast(Float.valueOf(values[0]));
+        }
+        // Double
+        else if (clazz == Double.class || clazz==double.class) {
+            return clazz.cast(Double.valueOf(values[0]));
+        }
+        // Short
+        else if (clazz == Short.class || clazz==short.class) {
+            return clazz.cast(Short.valueOf(values[0]));
+        }
+        // Long[]
+        else if (clazz == Long[].class || clazz==long[].class) {
+            Long[] longArray = new Long[values.length];
+            for (int ii=0; ii<values.length; ii++) {
+                longArray[ii] = Long.valueOf(values[ii]);
+            }
+            return clazz.cast(longArray);
+        }
+        // Integer[]
+        else if (clazz == Integer[].class || clazz==int[].class) {
+            Integer[] intArray = new Integer[values.length];
+            for (int ii=0; ii<values.length; ii++) {
+                intArray[ii] = Integer.valueOf(values[ii]);
+            }
+            return clazz.cast(intArray);
+        }
+        // String[]
+        else if (clazz == String[].class) {
+            return clazz.cast(values);
+        }
+        else if (clazz.isArray() || List.class.isAssignableFrom(clazz) || clazz.newInstance() instanceof List) {
+            List<T> newList = new ArrayList<>();
+            for (String value : values) {
+                newList.add(clazz.cast(value));
+            }
+            return clazz.isArray() ? clazz.cast(newList.toArray()) : clazz.cast(newList);
+        }
+        else {
+            return clazz.cast(values[0]);
         }
     }
 
@@ -253,9 +340,9 @@ class HttpParam {
 
     private void buildFormParams() {
         if (httpRequest.content() != null) {
-            httpRequest.retain();
+            httpRequest.content().retain();
             // set Request Decoder
-            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest.retain(), CharsetUtil.UTF_8);
             // loop data
             for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
                 String name = data.getName();
@@ -270,8 +357,8 @@ class HttpParam {
                             .add(((MemoryFileUpload) data).retain());
                 }
             }
+            logger.info("formParams {}", formParams);
             postDecoder.destroy();
-            httpRequest.release();
         }
     }
 }
