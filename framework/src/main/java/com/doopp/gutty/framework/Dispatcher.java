@@ -9,8 +9,11 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
@@ -34,8 +37,63 @@ public class Dispatcher {
 
     public void addRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
         String routeKey = httpMethodAnnotation.getSimpleName().toLowerCase()+":"+requestUri;
+        parse(routeKey);
         Route route = new Route(routeKey, clazz, method, parameters);
         routeMap.put(route.getKey(), route);
+    }
+
+    public void parse(String uriTemplate) {
+        int level = 0;
+        List<String> variableNames = new ArrayList();
+        StringBuilder pattern = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
+
+        for(int i = 0; i < uriTemplate.length(); ++i) {
+            char c = uriTemplate.charAt(i);
+            if (c == '{') {
+                ++level;
+                if (level == 1) {
+                    pattern.append(quote(builder));
+                    builder = new StringBuilder();
+                    continue;
+                }
+            } else if (c == '}') {
+                --level;
+                if (level == 0) {
+                    String variable = builder.toString();
+                    int idx = variable.indexOf(58);
+                    if (idx == -1) {
+                        pattern.append("([^/]*)");
+                        variableNames.add(variable);
+                    } else {
+                        if (idx + 1 == variable.length()) {
+                            throw new IllegalArgumentException("No custom regular expression specified after ':' in \"" + variable + "\"");
+                        }
+
+                        String regex = variable.substring(idx + 1, variable.length());
+                        pattern.append('(');
+                        pattern.append(regex);
+                        pattern.append(')');
+                        variableNames.add(variable.substring(0, idx));
+                    }
+
+                    builder = new StringBuilder();
+                    continue;
+                }
+            }
+
+            builder.append(c);
+        }
+
+        if (builder.length() > 0) {
+            pattern.append(quote(builder));
+        }
+
+        logger.info("{}", Pattern.compile(pattern.toString()));
+    }
+
+    private static String quote(StringBuilder builder) {
+        return builder.length() > 0 ? Pattern.quote(builder.toString()) : "";
     }
 
     public HttpResponse respondRequest (Injector injector, FullHttpRequest httpRequest) {

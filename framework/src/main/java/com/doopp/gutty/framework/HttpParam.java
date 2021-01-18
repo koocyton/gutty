@@ -236,8 +236,8 @@ class HttpParam {
 
     private <T> T fileParamCast(List<FileUpload> fileParams, String path, Class<T> clazz) throws IOException {
         // if fileParams is null
-        if (fileParams == null) {
-            return clazz.cast(null);
+        if (fileParams == null || fileParams.size()<1) {
+            return null;
         }
         // one
         else if (clazz == File.class) {
