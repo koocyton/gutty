@@ -21,7 +21,8 @@ public class Dispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Map<String, Route> routeMap = new HashMap<>();
+    private final Map<String, Route> uriRouteMap = new HashMap<>();
+    private final List<Route> patternRouteList = new ArrayList<>();
 
     private Dispatcher() {
     }
@@ -36,18 +37,21 @@ public class Dispatcher {
     }
 
     public void addRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
-        String routeKey = httpMethodAnnotation.getSimpleName().toLowerCase()+":"+requestUri;
-        parse(routeKey);
-        Route route = new Route(routeKey, clazz, method, parameters);
-        routeMap.put(route.getKey(), route);
+        String httpMethod = httpMethodAnnotation.getSimpleName().toLowerCase();
+        String routeKey = httpMethod+":"+requestUri;
+        if (routeKey.contains("{")) {
+            patternRouteList.add(new Route(parseUri(routeKey), clazz, method, parameters));
+        }
+        else {
+            uriRouteMap.put(routeKey, new Route(routeKey, clazz, method, parameters));
+        }
     }
 
-    public void parse(String uriTemplate) {
+    public Pattern parseUri(String uriTemplate) {
         int level = 0;
-        List<String> variableNames = new ArrayList();
+        // List<String> variableNames = new ArrayList();
         StringBuilder pattern = new StringBuilder();
         StringBuilder builder = new StringBuilder();
-
         for(int i = 0; i < uriTemplate.length(); ++i) {
             char c = uriTemplate.charAt(i);
             if (c == '{') {
@@ -64,7 +68,7 @@ public class Dispatcher {
                     int idx = variable.indexOf(58);
                     if (idx == -1) {
                         pattern.append("([^/]*)");
-                        variableNames.add(variable);
+                        // variableNames.add(variable);
                     } else {
                         if (idx + 1 == variable.length()) {
                             throw new IllegalArgumentException("No custom regular expression specified after ':' in \"" + variable + "\"");
@@ -74,14 +78,12 @@ public class Dispatcher {
                         pattern.append('(');
                         pattern.append(regex);
                         pattern.append(')');
-                        variableNames.add(variable.substring(0, idx));
+                        // variableNames.add(variable.substring(0, idx));
                     }
-
                     builder = new StringBuilder();
                     continue;
                 }
             }
-
             builder.append(c);
         }
 
@@ -89,7 +91,7 @@ public class Dispatcher {
             pattern.append(quote(builder));
         }
 
-        logger.info("{}", Pattern.compile(pattern.toString()));
+        return Pattern.compile(pattern.toString());
     }
 
     private static String quote(StringBuilder builder) {
@@ -141,10 +143,21 @@ public class Dispatcher {
         if (indexOf!=-1) {
             requestUri = requestUri.substring(0, indexOf);
         }
-        return routeMap.get(httpMethod.name().toLowerCase() + ":" + requestUri);
+        String requestKey = httpMethod.name().toLowerCase() + ":" + requestUri;
+        Route r = uriRouteMap.get(requestKey);
+        if (r!=null) {
+            return r;
+        }
+        for (Route route : patternRouteList) {
+            if (route.getUriPattern().matcher(requestKey).matches()) {
+                return route;
+            }
+        }
+        return null;
     }
 
     public static class Route {
+        private Pattern uriPattern;
         private String key;
         private Class<?> clazz;
         private Method method;
@@ -156,6 +169,18 @@ public class Dispatcher {
             this.clazz = clazz;
             this.method = method;
             this.parameters = parameters;
+        }
+        Route(Pattern uriPattern, Class<?> clazz, Method method, Parameter[] parameters) {
+            this.uriPattern = uriPattern;
+            this.clazz = clazz;
+            this.method = method;
+            this.parameters = parameters;
+        }
+        public void setUriPattern(Pattern uriPattern) {
+            this.uriPattern = uriPattern;
+        }
+        public Pattern getUriPattern() {
+            return uriPattern;
         }
         public void setKey(String key) {
             this.key = key;
