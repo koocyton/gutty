@@ -26,8 +26,8 @@ public class HelloController {
 
     @GET
     @Path("/hello/{id}/{name}")
-    public String hello3(@CookieParam("user") String user) {
-        logger.info(user);
+    public String hello3(@PathParam("id") Integer id, @PathParam("name") String name) {
+        logger.info("id {}  name {}", id, name);
         return helloService.hello();
     }
 

@@ -12,8 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 
 class HttpParam {
@@ -63,13 +61,13 @@ class HttpParam {
         fileParams = new HashMap<>();
     }
 
-    public Object[] getParams(Parameter[] parameters) {
+    public Object[] getParams(Parameter[] parameters, Map<String, String> pathParams) {
 
         this.resetParams();
 
         this.buildHeaderParams();
         this.buildCookieParams();
-        this.buildPathParams();
+        // this.buildPathParams(pathParams);
         this.buildQueryParams();
         this.buildFormParams();
 
@@ -331,7 +329,8 @@ class HttpParam {
         }
     }
 
-    private void buildPathParams() {
+    private void buildPathParams(Map<String, String> pathParams) {
+        this.pathParams = pathParams;
     }
 
     private void buildFormParams() {
