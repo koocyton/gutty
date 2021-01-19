@@ -125,12 +125,12 @@ public class Gutty {
             }
             else if (clazz.isAnnotationPresent(Socket.class)) {
                 // socket path
-                javax.ws.rs.Path socketPath = clazz.getAnnotation(javax.ws.rs.Path.class);
+                Socket socketAnnotation = clazz.getAnnotation(Socket.class);
                 // 如果没有值
-                if (socketPath == null || socketPath.value().length() > 0) {
+                if (socketAnnotation == null || socketAnnotation.value().length()<1) {
                     continue;
                 }
-                dispatcher.addSocketRoute(socketPath.value(), clazz);
+                dispatcher.addSocketRoute(socketAnnotation.value(), clazz);
             }
         }
     }
@@ -142,7 +142,7 @@ public class Gutty {
             @Override
             protected void configure() {
                 for(Class<?> clazz : classList) {
-                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class)) {
+                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
                         if (clazz.getInterfaces().length>=1) {
                             binder(clazz.getInterfaces()[0], clazz);
                         }

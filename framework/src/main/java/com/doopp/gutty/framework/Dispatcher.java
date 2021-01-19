@@ -1,6 +1,6 @@
 package com.doopp.gutty.framework;
 
-import com.doopp.gutty.framework.annotation.websocket.Open;
+import com.doopp.gutty.framework.annotation.websocket.*;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
@@ -123,11 +123,11 @@ public class Dispatcher {
     public static class SocketRoute {
         private String key;
         private Class<?> clazz;
-        private Method[] openMethods;
-        private Method[] messageMethods;
-        private Method[] closeMethods;
-        private Method[] pingMethods;
-        private Method[] pongMethods;
+        private List<Method> openMethodList;
+        private List<Method> messageMethodList;
+        private List<Method> closeMethodList;
+        private List<Method> pingMethodList;
+        private List<Method> pongMethodList;
         private SocketRoute() {
         }
         public SocketRoute(String key, Class<?> clazz) {
@@ -135,9 +135,57 @@ public class Dispatcher {
             this.clazz = clazz;
             for (Method method : clazz.getMethods()) {
                 if (method.getAnnotation(Open.class)!=null) {
-
+                    if (openMethodList==null) {
+                        openMethodList = new ArrayList<>();
+                    }
+                    openMethodList.add(method);
+                }
+                else if (method.getAnnotation(Message.class)!=null) {
+                    if (messageMethodList==null) {
+                        messageMethodList = new ArrayList<>();
+                    }
+                    messageMethodList.add(method);
+                }
+                else if (method.getAnnotation(Close.class)!=null) {
+                    if (closeMethodList==null) {
+                        closeMethodList = new ArrayList<>();
+                    }
+                    closeMethodList.add(method);
+                }
+                else if (method.getAnnotation(Ping.class)!=null) {
+                    if (pingMethodList==null) {
+                        pingMethodList = new ArrayList<>();
+                    }
+                    pingMethodList.add(method);
+                }
+                else if (method.getAnnotation(Pong.class)!=null) {
+                    if (pongMethodList==null) {
+                        pongMethodList = new ArrayList<>();
+                    }
+                    pongMethodList.add(method);
                 }
             }
+        }
+        public String getKey() {
+            return key;
+        }
+        public Class<?> getClazz() {
+            return clazz;
+        }
+        public List<Method> getOpenMethodList() {
+            return openMethodList;
+        }
+        public List<Method> getCloseMethodList() {
+            return closeMethodList;
+        }
+        public List<Method> getMessageMethodList() {
+            return messageMethodList;
+        }
+        public List<Method> getPingMethodList() {
+            return pingMethodList;
+        }
+        public List<Method> getPongMethodList() {
+            return pongMethodList;
         }
     }
 
