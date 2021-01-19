@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Parameter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 class HttpParam {
@@ -164,6 +166,16 @@ class HttpParam {
         // Short
         else if (clazz == Short.class || clazz==short.class) {
             return clazz.cast(Short.valueOf(value));
+        }
+        // Short
+        else if (clazz == Date.class) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                return clazz.cast(format.parse(value));
+            }
+            catch (ParseException e) {
+                return null;
+            }
         }
         else {
             return clazz.cast(value);
