@@ -10,7 +10,7 @@ public class HelloSocket {
     private static final Logger logger = LoggerFactory.getLogger(HelloSocket.class);
 
     @Open
-    public void onConnect() {
+    public void onConnect0() {
     }
 
     @Message
@@ -20,6 +20,5 @@ public class HelloSocket {
 
     @Close
     public void onClose() {
-
     }
 }

@@ -93,6 +93,8 @@ project(':demo') {
 	dependencies {
 
 		compile project(':framework')
+		// junit
+		testCompile "junit:junit:${junitVersion}"
 	}
 
 	jar {

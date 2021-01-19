@@ -55,7 +55,7 @@ public class Dispatcher {
         return builder.length() > 0 ? Pattern.quote(builder.toString()) : "";
     }
 
-    public HttpResponse respondRequest (Injector injector, FullHttpRequest httpRequest) {
+    public FullHttpResponse respondRequest (Injector injector, FullHttpRequest httpRequest) {
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // execute route
@@ -94,7 +94,6 @@ public class Dispatcher {
         }
         return result.toString().getBytes();
     }
-
 
     private HttpRoute getRoute(HttpMethod httpMethod, String requestUri) {
         int indexOf = requestUri.indexOf("?");
