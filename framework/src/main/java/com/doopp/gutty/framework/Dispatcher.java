@@ -1,5 +1,6 @@
 package com.doopp.gutty.framework;
 
+import com.doopp.gutty.framework.annotation.websocket.Open;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
@@ -19,8 +20,9 @@ public class Dispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Map<String, Route> uriRouteMap = new HashMap<>();
-    private final List<Route> patternRouteList = new ArrayList<>();
+    private final Map<String, HttpRoute> uriRouteMap = new HashMap<>();
+    private final List<HttpRoute> patternHttpRouteList = new ArrayList<>();
+    private final Map<String, SocketRoute> socketRouteMap = new HashMap<>();
 
     private Dispatcher() {
     }
@@ -34,15 +36,19 @@ public class Dispatcher {
         return dispatcher;
     }
 
-    public void addRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
+    public void addHttpRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {
         String httpMethod = httpMethodAnnotation.getSimpleName().toLowerCase();
         String routeKey = httpMethod+":"+requestUri;
         if (routeKey.contains("{")) {
-            patternRouteList.add(new Route(routeKey, clazz, method, parameters));
+            patternHttpRouteList.add(new HttpRoute(routeKey, clazz, method, parameters));
         }
         else {
-            uriRouteMap.put(routeKey, new Route(routeKey, clazz, method, parameters));
+            uriRouteMap.put(routeKey, new HttpRoute(routeKey, clazz, method, parameters));
         }
+    }
+
+    public void addSocketRoute(String requestUri, Class<?> clazz) {
+        socketRouteMap.put(requestUri, new SocketRoute(requestUri, clazz));
     }
 
     private static String quote(StringBuilder builder) {
@@ -62,21 +68,21 @@ public class Dispatcher {
 
     private byte[] executeRoute(Injector injector, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // get route
-        Route route = this.getRoute(httpRequest.method(), httpRequest.uri());
-        if (route==null) {
+        HttpRoute httpRoute = this.getRoute(httpRequest.method(), httpRequest.uri());
+        if (httpRoute ==null) {
             throw new RuntimeException("Oho ... Not found route target");
         }
         // get controller
-        Object controller = injector.getInstance(route.getClazz());
+        Object controller = injector.getInstance(httpRoute.getClazz());
         if (controller==null) {
-            throw new RuntimeException("Oho ... Not found controller : " + route.getClazz());
+            throw new RuntimeException("Oho ... Not found controller : " + httpRoute.getClazz());
         }
         // method invoke
         Object result;
         try {
-            result = (route.getParameters().length==0)
-                    ? route.getMethod().invoke(controller)
-                    : route.getMethod().invoke(controller, HttpParam.singleBuilder(httpRequest, httpResponse).getParams(route.getParameters(), route.getPathParamMap()));
+            result = (httpRoute.getParameters().length==0)
+                    ? httpRoute.getMethod().invoke(controller)
+                    : httpRoute.getMethod().invoke(controller, HttpParam.singleBuilder(httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -90,31 +96,52 @@ public class Dispatcher {
     }
 
 
-    private Route getRoute(HttpMethod httpMethod, String requestUri) {
+    private HttpRoute getRoute(HttpMethod httpMethod, String requestUri) {
         int indexOf = requestUri.indexOf("?");
         if (indexOf!=-1) {
             requestUri = requestUri.substring(0, indexOf);
         }
         String requestKey = httpMethod.name().toLowerCase() + ":" + requestUri;
         // try index uri
-        Route r = uriRouteMap.get(requestKey);
+        HttpRoute r = uriRouteMap.get(requestKey);
         if (r!=null)
             return r;
         // try match uri
-        for (Route route : patternRouteList) {
-            Matcher matcher = route.getUriPattern().matcher(requestKey);
+        for (HttpRoute httpRoute : patternHttpRouteList) {
+            Matcher matcher = httpRoute.getUriPattern().matcher(requestKey);
             if (matcher.find()) {
-                route.setPathValues(new String[matcher.groupCount()]);
+                httpRoute.setPathValues(new String[matcher.groupCount()]);
                 for (int ii = 0; ii < matcher.groupCount(); ii++) {
-                    route.getPathValues()[ii] = matcher.group(ii + 1);
+                    httpRoute.getPathValues()[ii] = matcher.group(ii + 1);
                 }
-                return route;
+                return httpRoute;
             }
         }
         return null;
     }
 
-    public static class Route {
+    public static class SocketRoute {
+        private String key;
+        private Class<?> clazz;
+        private Method[] openMethods;
+        private Method[] messageMethods;
+        private Method[] closeMethods;
+        private Method[] pingMethods;
+        private Method[] pongMethods;
+        private SocketRoute() {
+        }
+        public SocketRoute(String key, Class<?> clazz) {
+            this.key = key;
+            this.clazz = clazz;
+            for (Method method : clazz.getMethods()) {
+                if (method.getAnnotation(Open.class)!=null) {
+
+                }
+            }
+        }
+    }
+
+    public static class HttpRoute {
         private Pattern uriPattern;
         private String key;
         private Class<?> clazz;
@@ -122,9 +149,9 @@ public class Dispatcher {
         private Parameter[] parameters;
         private String[] pathFields;
         private String[] pathValues;
-        private Route() {
+        private HttpRoute() {
         }
-        Route(String key, Class<?> clazz, Method method, Parameter[] parameters) {
+        HttpRoute(String key, Class<?> clazz, Method method, Parameter[] parameters) {
             this.key = key;
             this.clazz = clazz;
             this.method = method;

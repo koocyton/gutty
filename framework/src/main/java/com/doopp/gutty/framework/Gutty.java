@@ -2,6 +2,7 @@ package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.Controller;
 import com.doopp.gutty.framework.annotation.Service;
+import com.doopp.gutty.framework.annotation.websocket.Socket;
 import com.google.inject.*;
 import com.google.inject.name.Names;
 import org.slf4j.Logger;
@@ -68,8 +69,8 @@ public class Gutty {
         List<Class<?>> classList = classList();
         // 将有注释的类添加到注入服务里
         annotationClass2Injector(classList);
-        // 将 Controller 类加入到路由中
-        controllerClass2Route(classList);
+        // 将类加入到路由中
+        class2Route(classList);
         // launch netty
         startNetty(Guice.createInjector(modules));
     }
@@ -81,7 +82,7 @@ public class Gutty {
     }
 
     // 将 Controller 类加入到路由中
-    private void controllerClass2Route(List<Class<?>> classList) {
+    private void class2Route(List<Class<?>> classList) {
         // route map
         Dispatcher dispatcher = Dispatcher.singleBuilder();
         // loop
@@ -119,8 +120,17 @@ public class Gutty {
                     else if (method.getAnnotation(OPTIONS.class)!=null) {
                         httpMethodAnnotation = OPTIONS.class;
                     }
-                    dispatcher.addRoute(httpMethodAnnotation, controllerPathValue + methodPathValue, clazz, method, method.getParameters());
+                    dispatcher.addHttpRoute(httpMethodAnnotation, controllerPathValue + methodPathValue, clazz, method, method.getParameters());
                 }
+            }
+            else if (clazz.isAnnotationPresent(Socket.class)) {
+                // socket path
+                javax.ws.rs.Path socketPath = clazz.getAnnotation(javax.ws.rs.Path.class);
+                // 如果没有值
+                if (socketPath == null || socketPath.value().length() > 0) {
+                    continue;
+                }
+                dispatcher.addSocketRoute(socketPath.value(), clazz);
             }
         }
     }
