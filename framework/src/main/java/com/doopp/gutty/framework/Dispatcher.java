@@ -216,7 +216,7 @@ public class Dispatcher {
         }
         public Map<String, String> getPathParamMap() {
             Map<String, String> pathParamMap = new HashMap<>();
-            if (pathFields.length!=pathValues.length) {
+            if (pathFields==null || pathValues==null || pathFields.length!=pathValues.length) {
                 return pathParamMap;
             }
             for (int ii = 0; ii < pathFields.length; ii++) {

@@ -20,21 +20,18 @@ public class HelloController {
     @GET
     @Path("/hello")
     public String hello(@CookieParam("user") String user) {
-        logger.info(user);
         return helloService.hello();
     }
 
     @GET
     @Path("/hello/{id}/{name}")
     public String hello3(@PathParam("id") Integer id, @PathParam("name") String name) {
-        logger.info("id {}  name {}", id, name);
         return helloService.hello();
     }
 
     @POST
     @Path("/hello")
     public String hello2(@FormParam("liu") Integer liu) {
-        logger.info("{}", liu);
         return "hello2";
     }
 }

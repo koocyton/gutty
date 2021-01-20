@@ -23,7 +23,7 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
-        logger.info("Http1RequestHandler : {}", ctx);
+        // logger.info("Http1RequestHandler : {}", ctx);
         // if (HttpUtil.is100ContinueExpected(httpRequest)) {
         //    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
         //    ctx.writeAndFlush(response);
