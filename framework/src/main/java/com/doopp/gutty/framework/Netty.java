@@ -15,6 +15,8 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.MediaType;
+
 class Netty {
 
     private static final Logger logger = LoggerFactory.getLogger(Netty.class);

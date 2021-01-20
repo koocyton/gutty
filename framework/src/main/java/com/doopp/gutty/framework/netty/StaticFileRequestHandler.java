@@ -13,7 +13,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -25,12 +24,17 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
     public static final int HTTP_CACHE_SECONDS = 3600;
 
-    private MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+    private static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
+        String requestUri = httpRequest.uri();
+        int indexOf = requestUri.indexOf("?");
+        if (indexOf!=-1) {
+            requestUri = requestUri.substring(0, indexOf);
+        }
         // 获取静态文件
-        InputStream ins = getClass().getResourceAsStream("/public" + httpRequest.uri());
+        InputStream ins = getClass().getResourceAsStream("/public" + requestUri);
         if (ins==null) {
             ctx.fireChannelRead(httpRequest.retain());
             return;
@@ -48,8 +52,9 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(bout.toByteArray()));
         // set length
-        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
         httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
+        // media type
+        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, mimetypesFileTypeMap.getContentType(requestUri));
         //
         if (HttpUtil.isKeepAlive(httpRequest)) {
             httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);

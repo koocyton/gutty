@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -24,16 +25,25 @@ public class Dispatcher {
     private final List<HttpRoute> patternHttpRouteList = new ArrayList<>();
     private final Map<String, SocketRoute> socketRouteMap = new HashMap<>();
 
+    private static final Object RD_LOCK = new Object();
+    private static volatile Dispatcher dispatcher;
+
     private Dispatcher() {
     }
 
-    private static Dispatcher dispatcher = null;
-
-    public static Dispatcher singleBuilder() {
-        if (dispatcher==null) {
-            dispatcher = new Dispatcher();
+    public static Dispatcher getInstance() {
+        // Double-check idiom for lazy initialization of fields.
+        // Local variable is used to limit the number of more expensive accesses to a volatile field.
+        Dispatcher result = dispatcher;
+        if (result == null) { // First check (no locking)
+            synchronized (RD_LOCK) {
+                result = dispatcher;
+                if (result == null) { // Second check (with locking)
+                    dispatcher = result = new Dispatcher();
+                }
+            }
         }
-        return dispatcher;
+        return result;
     }
 
     public void addHttpRoute(Class<? extends Annotation> httpMethodAnnotation, String requestUri, Class<?> clazz, Method method, Parameter[] parameters) {

@@ -23,7 +23,8 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
-        // logger.info("Http1RequestHandler : {}", ctx);
+        logger.info("ctx : {}", ctx);
+        logger.info("httpRequest : {}", httpRequest);
         // if (HttpUtil.is100ContinueExpected(httpRequest)) {
         //    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
         //    ctx.writeAndFlush(response);
@@ -40,7 +41,7 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
 
         // dispatch
-        FullHttpResponse httpResponse = Dispatcher.singleBuilder().respondRequest(injector, httpRequest);
+        FullHttpResponse httpResponse = Dispatcher.getInstance().respondRequest(injector, httpRequest);
         httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
 
         if (HttpUtil.isKeepAlive(httpRequest)) {

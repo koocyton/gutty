@@ -84,7 +84,7 @@ public class Gutty {
     // 将 Controller 类加入到路由中
     private void class2Route(List<Class<?>> classList) {
         // route map
-        Dispatcher dispatcher = Dispatcher.singleBuilder();
+        Dispatcher dispatcher = Dispatcher.getInstance();
         // loop
         for(Class<?> clazz : classList) {
             // 只分析 Controller
