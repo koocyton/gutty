@@ -1,6 +1,7 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.netty.Http1RequestHandler;
+import com.doopp.gutty.framework.netty.StaticFileRequestHandler;
 import com.google.inject.*;
 import com.google.inject.name.Named;
 import io.netty.bootstrap.ServerBootstrap;
@@ -82,10 +83,10 @@ class Netty {
                 pipeline.addLast(new HttpObjectAggregator(65536));
                 // that adds support for writing a large data stream
                 pipeline.addLast(new ChunkedWriteHandler());
+                // static request
+                pipeline.addLast(new StaticFileRequestHandler());
                 // http request
-                pipeline.addLast(injector.getInstance(Http1RequestHandler.class));
-                // static file
-                // pipeline.addLast(injector.getInstance(HttpStaticFileServerHandler.class));
+                pipeline.addLast(new Http1RequestHandler(injector));
             }
         };
     }

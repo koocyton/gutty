@@ -1,38 +1,40 @@
 package com.doopp.gutty.framework.netty;
 
 import com.doopp.gutty.framework.Dispatcher;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private final static Logger logger = LoggerFactory.getLogger(Http1RequestHandler.class);
 
-    @Inject
-    private Injector injector;
+    private final Injector injector;
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        super.channelRead(ctx, msg);
+    public Http1RequestHandler(Injector injector){
+        this.injector = injector;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
-        if (HttpUtil.is100ContinueExpected(httpRequest)) {
-            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
-            ctx.writeAndFlush(response);
-        }
+        logger.info("Http1RequestHandler : {}", ctx);
+        // if (HttpUtil.is100ContinueExpected(httpRequest)) {
+        //    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+        //    ctx.writeAndFlush(response);
+        // }
 
-//        if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
-//            HttpServerOperations ops = (HttpServerOperations)req;
-//            return ops.withWebsocketSupport(req.uri(), websocketServerSpec, handler);
-//        } else {
-//            return resp.sendNotFound();
-//        }
+        // if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
+        //     HttpServerOperations ops = (HttpServerOperations)req;
+        //     return ops.withWebsocketSupport(req.uri(), websocketServerSpec, handler);
+        // } else {
+        //     return resp.sendNotFound();
+        // }
 
         // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -50,5 +52,14 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         if (!HttpUtil.isKeepAlive(httpRequest)) {
             future.addListener(ChannelFutureListener.CLOSE);
         }
+    }
+
+    private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+        FullHttpResponse response = new DefaultFullHttpResponse(
+                HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status + "\r\n", CharsetUtil.UTF_8));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+
+        // Close the connection as soon as the error message is sent.
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 }
