@@ -47,7 +47,7 @@ class Netty {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            logger.info(">>> Running ServerBootstrap on " + httpHost + ":" + httpPort + "/" + httpsPort + "\n");
+            System.out.println(readGuttyGraph("        http://" + httpHost + ":" + httpPort + "/index.html"));
 
             Channel ch80 = b.bind(httpHost, httpPort).sync().channel();
             Channel ch443 = b.bind(httpHost, httpsPort).sync().channel();
@@ -89,5 +89,16 @@ class Netty {
                 pipeline.addLast(new Http1RequestHandler(injector));
             }
         };
+    }
+
+    private String readGuttyGraph(String text) {
+        return  "   _____           _     _           \n" +
+                "  / ____|         | |   | |          \n" +
+                " | |  __   _   _  | |_  | |_   _   _ \n" +
+                " | | |_ | | | | | | __| | __| | | | |\n" +
+                " | |__| | | |_| | | |_  | |_  | |_| |\n" +
+                "  \\_____|  \\__,_|  \\__|  \\__|  \\__, | "+ text +"\n" +
+                "                                __/ |\n" +
+                "                               |___/";
     }
 }
