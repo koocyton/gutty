@@ -30,13 +30,6 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         //    ctx.writeAndFlush(response);
         // }
 
-        // if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
-        //     HttpServerOperations ops = (HttpServerOperations)req;
-        //     return ops.withWebsocketSupport(req.uri(), websocketServerSpec, handler);
-        // } else {
-        //     return resp.sendNotFound();
-        // }
-
         // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
 

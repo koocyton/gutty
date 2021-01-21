@@ -2,6 +2,7 @@ package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.netty.Http1RequestHandler;
 import com.doopp.gutty.framework.netty.StaticFileRequestHandler;
+import com.doopp.gutty.framework.netty.WebSocketConnectHandler;
 import com.google.inject.*;
 import com.google.inject.name.Named;
 import io.netty.bootstrap.ServerBootstrap;
@@ -14,8 +15,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.MediaType;
 
 class Netty {
 
@@ -85,6 +84,8 @@ class Netty {
                 pipeline.addLast(new HttpObjectAggregator(65536));
                 // that adds support for writing a large data stream
                 pipeline.addLast(new ChunkedWriteHandler());
+                // websocket request
+                pipeline.addLast(new WebSocketConnectHandler(injector));
                 // static request
                 pipeline.addLast(new StaticFileRequestHandler());
                 // http request
