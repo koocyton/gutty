@@ -5,10 +5,11 @@ import com.google.inject.Injector;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.websocketx.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebSocketConnectHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketConnectHandler.class);
 
@@ -19,12 +20,48 @@ public class WebSocketConnectHandler extends SimpleChannelInboundHandler<FullHtt
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
-        if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
-            Dispatcher dispatcher = Dispatcher.getInstance();
-        } else {
-            ctx.fireChannelRead(httpRequest.retain());
-            return;
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+        if (msg instanceof FullHttpRequest){
+            onConnect((FullHttpRequest) msg);
         }
+        else if (msg instanceof TextWebSocketFrame){
+            onTextMessage((TextWebSocketFrame) msg);
+        }
+        else if (msg instanceof BinaryWebSocketFrame){
+            onBinaryMessage((BinaryWebSocketFrame) msg);
+        }
+        else if (msg instanceof PingWebSocketFrame){
+            onPing((PingWebSocketFrame) msg);
+        }
+        else if (msg instanceof PongWebSocketFrame){
+            onPong((PongWebSocketFrame) msg);
+        }
+        else if (msg instanceof CloseWebSocketFrame){
+            onClose((CloseWebSocketFrame) msg);
+        }
+    }
+
+    private void onConnect(FullHttpRequest httpRequest) {
+
+    }
+
+    private void onTextMessage(TextWebSocketFrame socketFrame) {
+
+    }
+
+    private void onBinaryMessage(BinaryWebSocketFrame socketFrame) {
+
+    }
+
+    private void onClose(CloseWebSocketFrame socketFrame) {
+
+    }
+
+    private void onPing(PingWebSocketFrame socketFrame) {
+
+    }
+
+    private void onPong(PongWebSocketFrame socketFrame) {
+
     }
 }
