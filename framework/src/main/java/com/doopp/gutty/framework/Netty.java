@@ -48,7 +48,7 @@ class Netty {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            System.out.println(readGuttyGraph("        http://" + httpHost + ":" + httpPort + "/index.html"));
+            System.out.println(launchScreen("http://" + httpHost + ":" + httpPort + "/index.html"));
 
             Channel ch80 = b.bind(httpHost, httpPort).sync().channel();
             Channel ch443 = b.bind(httpHost, httpsPort).sync().channel();
@@ -94,13 +94,13 @@ class Netty {
         };
     }
 
-    private String readGuttyGraph(String text) {
+    private String launchScreen(String text) {
         return  "   _____           _     _           \n" +
                 "  / ____|         | |   | |          \n" +
                 " | |  __   _   _  | |_  | |_   _   _ \n" +
                 " | | |_ | | | | | | __| | __| | | | |\n" +
                 " | |__| | | |_| | | |_  | |_  | |_| |\n" +
-                "  \\_____|  \\__,_|  \\__|  \\__|  \\__, | "+ text +"\n" +
+                "  \\_____|  \\__,_|  \\__|  \\__|  \\__, |   " + text +"\n" +
                 "                                __/ |\n" +
                 "                               |___/";
     }

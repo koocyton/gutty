@@ -10,11 +10,31 @@ public class HelloSocket {
     private static final Logger logger = LoggerFactory.getLogger(HelloSocket.class);
 
     @Open
-    public void onConnect0() {
+    public void onConnect() {
+    }
+
+    @TextMessage
+    public void onTextMessage() {
+
+    }
+
+    @BinaryMessage
+    public void onBinaryMessage() {
+
     }
 
     @Message
     public void onMessage() {
+
+    }
+
+    @Ping
+    public void onPing() {
+
+    }
+
+    @Pong
+    public void onPong() {
 
     }
 

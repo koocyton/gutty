@@ -5,6 +5,7 @@ import com.doopp.gutty.framework.annotation.Service;
 import com.doopp.gutty.framework.annotation.websocket.Socket;
 import com.google.inject.*;
 import com.google.inject.name.Names;
+import io.netty.channel.ChannelHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,8 @@ public class Gutty {
     private final List<Module> modules = new ArrayList<>();
 
     private final List<String> basePackages = new ArrayList<>();
+
+    private final List<ChannelHandler> channelHandlerList = new ArrayList<>();
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
