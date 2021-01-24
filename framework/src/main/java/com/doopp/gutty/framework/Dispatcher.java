@@ -21,9 +21,11 @@ public class Dispatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Map<String, HttpRoute> uriRouteMap = new HashMap<>();
+    private final Map<String, HttpRoute> httpRouteMap = new HashMap<>();
     private final List<HttpRoute> patternHttpRouteList = new ArrayList<>();
+
     private final Map<String, SocketRoute> socketRouteMap = new HashMap<>();
+    private final List<SocketRoute> patternSocketRouteList = new ArrayList<>();
 
     private static final Object RD_LOCK = new Object();
     private static volatile Dispatcher dispatcher;
@@ -53,12 +55,17 @@ public class Dispatcher {
             patternHttpRouteList.add(new HttpRoute(routeKey, clazz, method, parameters));
         }
         else {
-            uriRouteMap.put(routeKey, new HttpRoute(routeKey, clazz, method, parameters));
+            httpRouteMap.put(routeKey, new HttpRoute(routeKey, clazz, method, parameters));
         }
     }
 
     public void addSocketRoute(String requestUri, Class<?> clazz) {
-        socketRouteMap.put(requestUri, new SocketRoute(requestUri, clazz));
+        if (requestUri.contains("{")) {
+            patternSocketRouteList.add(new SocketRoute(requestUri, clazz));
+        }
+        else {
+            socketRouteMap.put(requestUri, new SocketRoute(requestUri, clazz));
+        }
     }
 
     private static String quote(StringBuilder builder) {
@@ -78,7 +85,7 @@ public class Dispatcher {
 
     private byte[] executeRoute(Injector injector, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // get route
-        HttpRoute httpRoute = this.getRoute(httpRequest.method(), httpRequest.uri());
+        HttpRoute httpRoute = this.getHttpRoute(httpRequest.method(), httpRequest.uri());
         if (httpRoute ==null) {
             throw new RuntimeException("Oho ... Not found route target");
         }
@@ -92,7 +99,7 @@ public class Dispatcher {
         try {
             result = (httpRoute.getParameters().length==0)
                     ? httpRoute.getMethod().invoke(controller)
-                    : httpRoute.getMethod().invoke(controller, HttpParam.singleBuilder(httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+                    : httpRoute.getMethod().invoke(controller, HttpParam.singleBuilder(ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -105,14 +112,37 @@ public class Dispatcher {
         return result.toString().getBytes();
     }
 
-    private HttpRoute getRoute(HttpMethod httpMethod, String requestUri) {
+    public SocketRoute getWebsocketRoute(String connectUri) {
+        int indexOf = connectUri.indexOf("?");
+        if (indexOf!=-1) {
+            connectUri = connectUri.substring(0, indexOf);
+        }
+        // try index uri
+        SocketRoute r = socketRouteMap.get(connectUri);
+        if (r!=null)
+            return r;
+        // try match uri
+        for (SocketRoute socketRoute : patternSocketRouteList) {
+            Matcher matcher = socketRoute.getUriPattern().matcher(connectUri);
+            if (matcher.find()) {
+                socketRoute.setPathValues(new String[matcher.groupCount()]);
+                for (int ii = 0; ii < matcher.groupCount(); ii++) {
+                    socketRoute.getPathValues()[ii] = matcher.group(ii + 1);
+                }
+                return socketRoute;
+            }
+        }
+        return null;
+    }
+
+    private HttpRoute getHttpRoute(HttpMethod httpMethod, String requestUri) {
         int indexOf = requestUri.indexOf("?");
         if (indexOf!=-1) {
             requestUri = requestUri.substring(0, indexOf);
         }
         String requestKey = httpMethod.name().toLowerCase() + ":" + requestUri;
         // try index uri
-        HttpRoute r = uriRouteMap.get(requestKey);
+        HttpRoute r = httpRouteMap.get(requestKey);
         if (r!=null)
             return r;
         // try match uri
@@ -130,8 +160,11 @@ public class Dispatcher {
     }
 
     public static class SocketRoute {
+        private Pattern uriPattern;
         private String key;
         private Class<?> clazz;
+        private String[] pathFields;
+        private String[] pathValues;
         private List<Method> openMethodList;
         private List<Method> messageMethodList;
         private List<Method> closeMethodList;
@@ -174,6 +207,34 @@ public class Dispatcher {
                     pongMethodList.add(method);
                 }
             }
+        }
+        public Map<String, String> getPathParamMap() {
+            Map<String, String> pathParamMap = new HashMap<>();
+            if (pathFields==null || pathValues==null || pathFields.length!=pathValues.length) {
+                return pathParamMap;
+            }
+            for (int ii = 0; ii < pathFields.length; ii++) {
+                pathParamMap.put(pathFields[ii], pathValues[ii]);
+            }
+            return pathParamMap;
+        }
+        public void setPathValues(String[] pathValues) {
+            this.pathValues = pathValues;
+        }
+        public String[] getPathValues() {
+            return pathValues;
+        }
+        public void setPathFields(String[] pathFields) {
+            this.pathFields = pathFields;
+        }
+        public String[] getPathFields() {
+            return pathFields;
+        }
+        public void setUriPattern(Pattern uriPattern) {
+            this.uriPattern = uriPattern;
+        }
+        public Pattern getUriPattern() {
+            return uriPattern;
         }
         public String getKey() {
             return key;

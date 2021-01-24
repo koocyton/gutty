@@ -1,62 +1,86 @@
 package com.doopp.gutty.framework.netty;
 
 import com.doopp.gutty.framework.Dispatcher;
+import com.doopp.gutty.framework.HttpParam;
 import com.google.inject.Injector;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
-import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
-public class WebSocketConnectHandler extends WebSocketServerProtocolHandler {
+public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketConnectHandler.class);
 
-    private Injector injector;
+    private final Injector injector;
 
     public WebSocketConnectHandler(Injector injector){
-        super("");
         this.injector = injector;
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, WebSocketFrame frame, List<Object> out) throws Exception {
-        if (frame instanceof CloseWebSocketFrame) {
-            WebSocketServerHandshaker handshaker = getHandshaker(ctx.channel());
-            if (handshaker != null) {
-                frame.retain();
-                handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame);
-            } else {
-                logger.info("{}", ctx);
-                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-            }
-            return;
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+        if (msg instanceof FullHttpRequest){
+            onConnect(ctx, (FullHttpRequest) msg);
         }
-        super.decode(ctx, frame, out);
+        else if (msg instanceof TextWebSocketFrame){
+            onText(ctx, (TextWebSocketFrame) msg);
+        }
+        else if (msg instanceof BinaryWebSocketFrame){
+            onBinary(ctx, (BinaryWebSocketFrame) msg);
+        }
+        else if (msg instanceof PingWebSocketFrame){
+            onPing(ctx, (PingWebSocketFrame) msg);
+        }
+        else if (msg instanceof PongWebSocketFrame){
+            onPong(ctx, (PongWebSocketFrame) msg);
+        }
+        else if (msg instanceof CloseWebSocketFrame){
+            onClose(ctx, (CloseWebSocketFrame) msg);
+        }
     }
 
     private void onConnect(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+        // logger.info("httpRequest {}", httpRequest);
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
+            logger.info("httpRequest {}", httpRequest);
             Dispatcher dispatcher = Dispatcher.getInstance();
-
-            WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+            Dispatcher.SocketRoute socketRoute = dispatcher.getWebsocketRoute(httpRequest.uri());
+            if (socketRoute==null) {
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+                return;
+            }
+            // get controller
+            Object socket = injector.getInstance(socketRoute.getClazz());
+            List<Method> openMethodList = socketRoute.getOpenMethodList();
+            for(Method method : openMethodList) {
+                logger.info("method {}", method);
+                try {
+                    if ((method.getParameters().length == 0)) {
+                        method.invoke(socket);
+                    } else {
+                        method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                    }
+                }
+                catch(Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
             return;
         }
         ctx.fireChannelRead(httpRequest.retain());
     }
 
-    private void onTextMessage(ChannelHandlerContext ctx, TextWebSocketFrame socketFrame) {
+    private void onText(ChannelHandlerContext ctx, TextWebSocketFrame socketFrame) {
 
     }
 
-    private void onBinaryMessage(ChannelHandlerContext ctx, BinaryWebSocketFrame socketFrame) {
+    private void onBinary(ChannelHandlerContext ctx, BinaryWebSocketFrame socketFrame) {
 
     }
 
@@ -70,16 +94,5 @@ public class WebSocketConnectHandler extends WebSocketServerProtocolHandler {
 
     private void onPong(ChannelHandlerContext ctx, PongWebSocketFrame socketFrame) {
 
-    }
-
-    private static final AttributeKey<WebSocketServerHandshaker> HANDSHAKER_ATTR_KEY =
-            AttributeKey.valueOf(WebSocketServerHandshaker.class, "HANDSHAKER");
-
-    static WebSocketServerHandshaker getHandshaker(Channel channel) {
-        return channel.attr(HANDSHAKER_ATTR_KEY).get();
-    }
-
-    static void setHandshaker(Channel channel, WebSocketServerHandshaker handshaker) {
-        channel.attr(HANDSHAKER_ATTR_KEY).set(handshaker);
     }
 }

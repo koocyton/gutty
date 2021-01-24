@@ -1,6 +1,8 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.FileParam;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
@@ -16,23 +18,34 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-class HttpParam {
+public class HttpParam {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpParam.class);
 
-    private static HttpParam paramUtil = null;
+    private static HttpParam httpParam = null;
     private FullHttpRequest httpRequest;
     private FullHttpResponse httpResponse;
+    private ChannelHandlerContext ctx;
 
     private HttpParam() {}
 
-    public static HttpParam singleBuilder(FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
-        if (paramUtil==null) {
-            paramUtil = new HttpParam();
-            paramUtil.httpRequest = httpRequest;
-            paramUtil.httpResponse = httpResponse;
+    public static HttpParam singleBuilder(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+        if (httpParam==null) {
+            httpParam = new HttpParam();
+            httpParam.httpRequest = httpRequest;
+            httpParam.httpResponse = httpResponse;
+            httpParam.ctx = ctx;
         }
-        return paramUtil;
+        return httpParam;
+    }
+
+    public static HttpParam singleBuilder(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+        if (httpParam==null) {
+            httpParam = new HttpParam();
+            httpParam.httpRequest = httpRequest;
+            httpParam.ctx = ctx;
+        }
+        return httpParam;
     }
 
     // http headers
@@ -79,8 +92,16 @@ class HttpParam {
         for (int ii=0; ii<params.length; ii++) {
             Parameter parameter = parameters[ii];
             Class<?> parameterClazz = parameter.getType();
+            // ChannelHandlerContext
+            if (parameterClazz == ChannelHandlerContext.class) {
+                params[ii] = ctx;
+            }
+            // Channel
+            else if (parameterClazz == Channel.class) {
+                params[ii] = ctx.channel();
+            }
             // request
-            if (parameterClazz == HttpRequest.class || parameterClazz == FullHttpRequest.class) {
+            else if (parameterClazz == HttpRequest.class || parameterClazz == FullHttpRequest.class) {
                 params[ii] = httpRequest;
             }
             // response
