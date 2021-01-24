@@ -3,6 +3,7 @@ package com.doopp.gutty.framework;
 import com.doopp.gutty.framework.annotation.websocket.*;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
@@ -59,31 +60,11 @@ public class Dispatcher {
         }
     }
 
-    public void addSocketRoute(String requestUri, Class<?> clazz) {
-        if (requestUri.contains("{")) {
-            patternSocketRouteList.add(new SocketRoute(requestUri, clazz));
-        }
-        else {
-            socketRouteMap.put(requestUri, new SocketRoute(requestUri, clazz));
-        }
-    }
-
     private static String quote(StringBuilder builder) {
         return builder.length() > 0 ? Pattern.quote(builder.toString()) : "";
     }
 
-    public FullHttpResponse respondRequest (Injector injector, FullHttpRequest httpRequest) {
-        // init httpResponse
-        FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-        // execute route
-        byte[] result = executeRoute(injector, httpRequest, httpResponse);
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
-        // set length
-        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
-        return httpResponse;
-    }
-
-    private byte[] executeRoute(Injector injector, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    public byte[] executeHttpRoute(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // get route
         HttpRoute httpRoute = this.getHttpRoute(httpRequest.method(), httpRequest.uri());
         if (httpRoute ==null) {
@@ -112,7 +93,20 @@ public class Dispatcher {
         return result.toString().getBytes();
     }
 
-    public SocketRoute getWebsocketRoute(String connectUri) {
+    public void addSocketRoute(String requestUri, Class<?> clazz) {
+        if (requestUri.contains("{")) {
+            patternSocketRouteList.add(new SocketRoute(requestUri, clazz));
+        }
+        else {
+            socketRouteMap.put(requestUri, new SocketRoute(requestUri, clazz));
+        }
+    }
+
+    public void executeSocketRoute(Injector injector, ChannelHandlerContext ctx) {
+
+    }
+
+    private SocketRoute getSocketRoute(String connectUri) {
         int indexOf = connectUri.indexOf("?");
         if (indexOf!=-1) {
             connectUri = connectUri.substring(0, indexOf);
@@ -157,6 +151,53 @@ public class Dispatcher {
             }
         }
         return null;
+    }
+
+    private static Pattern parseUri(String uriTemplate) {
+        int level = 0;
+        // List<String> variableNames = new ArrayList();
+        StringBuilder pattern = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < uriTemplate.length(); ++i) {
+            char c = uriTemplate.charAt(i);
+            if (c == '{') {
+                ++level;
+                if (level == 1) {
+                    pattern.append(quote(builder));
+                    builder = new StringBuilder();
+                    continue;
+                }
+            } else if (c == '}') {
+                --level;
+                if (level == 0) {
+                    String variable = builder.toString();
+                    int idx = variable.indexOf(58);
+                    if (idx == -1) {
+                        pattern.append("([^/]*)");
+                        // variableNames.add(variable);
+                    } else {
+                        if (idx + 1 == variable.length()) {
+                            throw new IllegalArgumentException("No custom regular expression specified after ':' in \"" + variable + "\"");
+                        }
+
+                        String regex = variable.substring(idx + 1, variable.length());
+                        pattern.append('(');
+                        pattern.append(regex);
+                        pattern.append(')');
+                        // variableNames.add(variable.substring(0, idx));
+                    }
+                    builder = new StringBuilder();
+                    continue;
+                }
+            }
+            builder.append(c);
+        }
+
+        if (builder.length() > 0) {
+            pattern.append(quote(builder));
+        }
+
+        return Pattern.compile(pattern.toString());
     }
 
     public static class SocketRoute {
@@ -337,52 +378,5 @@ public class Dispatcher {
         public Parameter[] getParameters() {
             return parameters;
         }
-    }
-
-    private static Pattern parseUri(String uriTemplate) {
-        int level = 0;
-        // List<String> variableNames = new ArrayList();
-        StringBuilder pattern = new StringBuilder();
-        StringBuilder builder = new StringBuilder();
-        for(int i = 0; i < uriTemplate.length(); ++i) {
-            char c = uriTemplate.charAt(i);
-            if (c == '{') {
-                ++level;
-                if (level == 1) {
-                    pattern.append(quote(builder));
-                    builder = new StringBuilder();
-                    continue;
-                }
-            } else if (c == '}') {
-                --level;
-                if (level == 0) {
-                    String variable = builder.toString();
-                    int idx = variable.indexOf(58);
-                    if (idx == -1) {
-                        pattern.append("([^/]*)");
-                        // variableNames.add(variable);
-                    } else {
-                        if (idx + 1 == variable.length()) {
-                            throw new IllegalArgumentException("No custom regular expression specified after ':' in \"" + variable + "\"");
-                        }
-
-                        String regex = variable.substring(idx + 1, variable.length());
-                        pattern.append('(');
-                        pattern.append(regex);
-                        pattern.append(')');
-                        // variableNames.add(variable.substring(0, idx));
-                    }
-                    builder = new StringBuilder();
-                    continue;
-                }
-            }
-            builder.append(c);
-        }
-
-        if (builder.length() > 0) {
-            pattern.append(quote(builder));
-        }
-
-        return Pattern.compile(pattern.toString());
     }
 }

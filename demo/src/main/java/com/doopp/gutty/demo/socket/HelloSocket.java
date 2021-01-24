@@ -5,7 +5,10 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Socket("/ws/game")
+import javax.ws.rs.Path;
+
+@Socket
+@Path("/api")
 public class HelloSocket {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloSocket.class);

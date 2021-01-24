@@ -6,7 +6,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Socket {
-
-    String value() default "";
 }
 

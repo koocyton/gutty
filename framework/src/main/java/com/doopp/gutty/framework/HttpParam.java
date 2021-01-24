@@ -43,6 +43,7 @@ public class HttpParam {
         if (httpParam==null) {
             httpParam = new HttpParam();
             httpParam.httpRequest = httpRequest;
+            // httpParam.httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
             httpParam.ctx = ctx;
         }
         return httpParam;

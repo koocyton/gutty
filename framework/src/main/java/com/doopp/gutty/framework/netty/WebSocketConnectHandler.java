@@ -50,7 +50,7 @@ public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object>
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
             logger.info("httpRequest {}", httpRequest);
             Dispatcher dispatcher = Dispatcher.getInstance();
-            Dispatcher.SocketRoute socketRoute = dispatcher.getWebsocketRoute(httpRequest.uri());
+            Dispatcher.SocketRoute socketRoute = dispatcher.getSocketRoute(httpRequest.uri());
             if (socketRoute==null) {
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
                 return;

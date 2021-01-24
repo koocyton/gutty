@@ -9,6 +9,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -28,12 +29,13 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         //    ctx.writeAndFlush(response);
         // }
 
-        // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-        // httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
-
-        // dispatch
-        FullHttpResponse httpResponse = Dispatcher.getInstance().respondRequest(injector, httpRequest);
-        httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
+        // init httpResponse
+        FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
+        // execute route
+        byte[] result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
+        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
+        // set length
+        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
 
         if (HttpUtil.isKeepAlive(httpRequest)) {
             httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);

@@ -22,13 +22,9 @@ import java.util.*;
 
 public class Gutty {
 
-    private final static Logger logger = LoggerFactory.getLogger(Gutty.class);
-
     private final List<Module> modules = new ArrayList<>();
 
     private final List<String> basePackages = new ArrayList<>();
-
-    private final List<ChannelHandler> channelHandlerList = new ArrayList<>();
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -128,17 +124,17 @@ public class Gutty {
             }
             else if (clazz.isAnnotationPresent(Socket.class)) {
                 // socket path
-                Socket socketAnnotation = clazz.getAnnotation(Socket.class);
+                javax.ws.rs.Path pathAnnotation = clazz.getAnnotation(javax.ws.rs.Path.class);
                 // 如果没有值
-                if (socketAnnotation == null || socketAnnotation.value().length()<1) {
+                if (pathAnnotation == null || pathAnnotation.value().length()<1) {
                     continue;
                 }
-                dispatcher.addSocketRoute(socketAnnotation.value(), clazz);
+                dispatcher.addSocketRoute(pathAnnotation.value(), clazz);
             }
         }
     }
 
-    // 扫描 @Service 和 @Controller
+    // 扫描 @Service 和 @Controller  @Socket
     // 将他们加入到 Module 里给 injector 调用
     private void annotationClass2Injector(List<Class<?>> classList) {
         modules.add(new AbstractModule() {
