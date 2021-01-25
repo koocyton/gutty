@@ -9,7 +9,7 @@ import javax.ws.rs.Path;
 import java.nio.channels.Channel;
 
 @Socket
-@Path("/api")
+@Path("/ws/game")
 public class HelloSocket {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloSocket.class);
