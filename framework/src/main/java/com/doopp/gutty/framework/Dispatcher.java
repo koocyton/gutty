@@ -206,6 +206,8 @@ public class Dispatcher {
         private String[] pathValues;
         private List<Method> openMethodList;
         private List<Method> messageMethodList;
+        private List<Method> textMethodList;
+        private List<Method> binaryMethodList;
         private List<Method> closeMethodList;
         private List<Method> pingMethodList;
         private List<Method> pongMethodList;
@@ -226,6 +228,18 @@ public class Dispatcher {
                         messageMethodList = new ArrayList<>();
                     }
                     messageMethodList.add(method);
+                }
+                else if (method.getAnnotation(TextMessage.class)!=null) {
+                    if (textMethodList==null) {
+                        textMethodList = new ArrayList<>();
+                    }
+                    textMethodList.add(method);
+                }
+                else if (method.getAnnotation(BinaryMessage.class)!=null) {
+                    if (binaryMethodList==null) {
+                        binaryMethodList = new ArrayList<>();
+                    }
+                    binaryMethodList.add(method);
                 }
                 else if (method.getAnnotation(Close.class)!=null) {
                     if (closeMethodList==null) {
@@ -289,6 +303,12 @@ public class Dispatcher {
         }
         public List<Method> getMessageMethodList() {
             return messageMethodList;
+        }
+        public List<Method> getTextMethodList() {
+            return textMethodList;
+        }
+        public List<Method> getBinaryMethodList() {
+            return binaryMethodList;
         }
         public List<Method> getPingMethodList() {
             return pingMethodList;

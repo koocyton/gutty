@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object> {
@@ -30,20 +31,8 @@ public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object>
         if (msg instanceof FullHttpRequest){
             onConnect(ctx, (FullHttpRequest) msg);
         }
-        else if (msg instanceof TextWebSocketFrame) {
-            onText(ctx, (TextWebSocketFrame) msg);
-        }
-        else if (msg instanceof BinaryWebSocketFrame) {
-            onBinary(ctx, (BinaryWebSocketFrame) msg);
-        }
-        else if (msg instanceof PingWebSocketFrame) {
-            onPing(ctx, (PingWebSocketFrame) msg);
-        }
-        else if (msg instanceof PongWebSocketFrame) {
-            onPong(ctx, (PongWebSocketFrame) msg);
-        }
-        else if (msg instanceof CloseWebSocketFrame) {
-            onClose(ctx, (CloseWebSocketFrame) msg);
+        else if (msg instanceof WebSocketFrame) {
+            callSocketMethod(ctx, msg);
         }
     }
 
@@ -56,25 +45,85 @@ public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object>
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
                 return;
             }
-            // get controller
-            Object socket = injector.getInstance(socketRoute.getClazz());
-            List<Method> openMethodList = socketRoute.getOpenMethodList();
-            for(Method method : openMethodList) {
-                logger.info("method {}", method);
-                try {
-                    if ((method.getParameters().length == 0)) {
-                        method.invoke(socket);
-                    } else {
-                        method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
-                    }
-                }
-                catch(Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            setSocketRoute(ctx, httpRequest);
+            callSocketMethod(ctx, httpRequest);
             return;
         }
         ctx.fireChannelRead(httpRequest.retain());
+    }
+
+    private void callSocketMethod(ChannelHandlerContext ctx, Object msg) {
+        // get socket route
+        Dispatcher.SocketRoute socketRoute = getSocketRoute(ctx);
+        FullHttpRequest httpRequest = getHttpRequest(ctx);
+        if (socketRoute==null) {
+            return;
+        }
+        // get injector instance
+        Object socket = injector.getInstance(socketRoute.getClazz());
+        // 初始化要调用的方法
+        List<Method> callMethodList = socketRoute.getMessageMethodList();
+        // on connect
+        if (msg instanceof FullHttpRequest){
+            callMethodList = socketRoute.getOpenMethodList();
+        }
+        // Text Frame
+        else if (msg instanceof TextWebSocketFrame) {
+            if (callMethodList==null) {
+                callMethodList = socketRoute.getTextMethodList();
+            }
+            else if (socketRoute.getTextMethodList()!=null) {
+                callMethodList.addAll(socketRoute.getTextMethodList());
+            }
+        }
+        // Binary Frame
+        else if (msg instanceof BinaryWebSocketFrame) {
+            if (callMethodList==null) {
+                callMethodList = socketRoute.getBinaryMethodList();
+            }
+            else if (socketRoute.getTextMethodList()!=null) {
+                callMethodList.addAll(socketRoute.getBinaryMethodList());
+            }
+        }
+        // Ping Frame
+        else if (msg instanceof PingWebSocketFrame) {
+            if (callMethodList==null) {
+                callMethodList = socketRoute.getPingMethodList();
+            }
+            else if (socketRoute.getTextMethodList()!=null) {
+                callMethodList.addAll(socketRoute.getPingMethodList());
+            }
+        }
+        // Pong Frame
+        else if (msg instanceof PongWebSocketFrame) {
+            if (callMethodList==null) {
+                callMethodList = socketRoute.getPongMethodList();
+            }
+            else if (socketRoute.getTextMethodList()!=null) {
+                callMethodList.addAll(socketRoute.getPongMethodList());
+            }
+        }
+        // Close Frame
+        else if (msg instanceof CloseWebSocketFrame) {
+            if (callMethodList==null) {
+                callMethodList = socketRoute.getCloseMethodList();
+            }
+            else if (socketRoute.getTextMethodList()!=null) {
+                callMethodList.addAll(socketRoute.getCloseMethodList());
+            }
+        }
+        for(Method method : callMethodList) {
+            try {
+                if ((method.getParameters().length == 0)) {
+                    method.invoke(socket);
+                } else {
+                    method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                }
+            }
+            catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private void setSocketRoute(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
@@ -100,61 +149,5 @@ public class WebSocketConnectHandler extends SimpleChannelInboundHandler<Object>
             return null;
         }
         return fullHttpRequestAttribute.get();
-    }
-
-    private void onText(ChannelHandlerContext ctx, TextWebSocketFrame socketFrame) {
-        Dispatcher.SocketRoute socketRoute = getSocketRoute(ctx);
-        FullHttpRequest httpRequest = getHttpRequest(ctx);
-        if (socketRoute==null) {
-            return;
-        }
-        Object socket = injector.getInstance(socketRoute.getClazz());
-        List<Method> openMethodList = socketRoute.getMessageMethodList();
-        for(Method method : openMethodList) {
-            try {
-                if ((method.getParameters().length == 0)) {
-                    method.invoke(socket);
-                } else {
-                    method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
-                }
-            }
-            catch(Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void onBinary(ChannelHandlerContext ctx, BinaryWebSocketFrame socketFrame) {
-        Dispatcher.SocketRoute socketRoute = getSocketRoute(ctx);
-        FullHttpRequest httpRequest = getHttpRequest(ctx);
-        if (socketRoute==null) {
-            return;
-        }
-        Object socket = injector.getInstance(socketRoute.getClazz());
-        List<Method> openMethodList = socketRoute.getOpenMethodList();
-        for(Method method : openMethodList) {
-            try {
-                if ((method.getParameters().length == 0)) {
-                    method.invoke(socket);
-                } else {
-                    method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
-                }
-            }
-            catch(Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void onClose(ChannelHandlerContext ctx, CloseWebSocketFrame socketFrame) {
-
-    }
-
-    private void onPing(ChannelHandlerContext ctx, PingWebSocketFrame socketFrame) {
-
-    }
-
-    private void onPong(ChannelHandlerContext ctx, PongWebSocketFrame socketFrame) {
-
     }
 }
