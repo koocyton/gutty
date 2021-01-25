@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Path;
+import java.nio.channels.Channel;
 
 @Socket
 @Path("/api")
@@ -19,7 +20,7 @@ public class HelloSocket {
     }
 
     @TextMessage
-    public void onTextMessage() {
+    public void onTextMessage(Channel channel) {
 
     }
 

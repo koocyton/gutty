@@ -6,6 +6,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,11 +104,7 @@ public class Dispatcher {
         }
     }
 
-    public void executeSocketRoute(Injector injector, ChannelHandlerContext ctx) {
-
-    }
-
-    private SocketRoute getSocketRoute(String connectUri) {
+    public SocketRoute getSocketRoute(String connectUri) {
         int indexOf = connectUri.indexOf("?");
         if (indexOf!=-1) {
             connectUri = connectUri.substring(0, indexOf);
