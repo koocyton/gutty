@@ -27,14 +27,25 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
-            this.onConnect(ctx, (FullHttpRequest) msg);
+            callSocketConnect(ctx, (FullHttpRequest) msg);
         }
-        callSocketMethod(ctx, msg);
+        else if (msg instanceof WebSocketFrame) {
+            callSocketMethod(ctx, msg);
+        }
     }
 
-    private void onConnect(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+    private void callSocketConnect(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         // is websocket
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
+            // 获取路由
+            Dispatcher dispatcher = Dispatcher.getInstance();
+            Dispatcher.SocketRoute socketRoute = dispatcher.getSocketRoute(httpRequest.uri());
+            // 如果路由不能匹配
+            if (socketRoute==null) {
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+                ctx.channel().close();
+                return;
+            }
             // Handshake
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
                     getWebSocketLocation(httpRequest), null, true, 5 * 1024 * 1024);
@@ -43,6 +54,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
             } else {
                 handshaker.handshake(ctx.channel(), httpRequest);
+                callSocketMethod(ctx, httpRequest);
+                setSocketRoute(ctx, httpRequest);
             }
             return;
         }
@@ -130,13 +143,13 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
 
     private void setSocketRoute(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         if (ctx!=null && httpRequest!=null && httpRequest.uri()!=null) {
-            AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.newInstance("FullHttpRequest");
-            ctx.channel().attr(requestAttributeKey).set(httpRequest.retain());
+            AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
+            ctx.channel().attr(requestAttributeKey).set(httpRequest);
         }
     }
 
     private Dispatcher.SocketRoute getSocketRoute(ChannelHandlerContext ctx) {
-        AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.newInstance("FullHttpRequest");
+        AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
         Attribute<FullHttpRequest> fullHttpRequestAttribute = ctx.channel().attr(requestAttributeKey);
         if (fullHttpRequestAttribute==null || fullHttpRequestAttribute.get()==null) {
             return null;
@@ -145,11 +158,11 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     private FullHttpRequest getHttpRequest(ChannelHandlerContext ctx) {
-        AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.newInstance("FullHttpRequest");
+        AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
         Attribute<FullHttpRequest> fullHttpRequestAttribute =  ctx.channel().attr(requestAttributeKey);
         if (fullHttpRequestAttribute==null) {
             return null;
         }
-        return fullHttpRequestAttribute.get().retain();
+        return fullHttpRequestAttribute.get();
     }
 }

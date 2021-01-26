@@ -32,6 +32,7 @@ public class HelloController {
     @POST
     @Path("/hello")
     public String hello2(@FormParam("liu") Integer liu) {
+        logger.info("liu {}", liu);
         return "hello2";
     }
 }

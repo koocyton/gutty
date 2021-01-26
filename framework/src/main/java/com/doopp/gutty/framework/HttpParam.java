@@ -369,9 +369,9 @@ public class HttpParam {
 
     private void buildFormParams() {
         if (httpRequest.content() != null) {
-            httpRequest.content().retain();
+            // httpRequest.retain();
             // set Request Decoder
-            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest.retain(), CharsetUtil.UTF_8);
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
             // loop data
             for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
                 String name = data.getName();
