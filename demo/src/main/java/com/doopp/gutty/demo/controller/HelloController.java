@@ -26,6 +26,8 @@ public class HelloController {
     @GET
     @Path("/hello/{id}/{name}")
     public String hello3(@PathParam("id") Integer id, @PathParam("name") String name) {
+        logger.info("id {}", id);
+        logger.info("name {}", name);
         return helloService.hello();
     }
 
