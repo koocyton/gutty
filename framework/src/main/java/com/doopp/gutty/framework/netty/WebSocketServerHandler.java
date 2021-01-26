@@ -131,8 +131,11 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
             try {
                 if ((method.getParameters().length == 0)) {
                     method.invoke(socket);
-                } else {
+                } else if (msg instanceof FullHttpRequest) {
                     method.invoke(socket, HttpParam.builder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                }
+                else if (msg instanceof WebSocketFrame) {
+                    method.invoke(socket, HttpParam.builder(ctx, httpRequest).setWebSocketFrame((WebSocketFrame) msg).getParams(method.getParameters(), socketRoute.getPathParamMap()));
                 }
             }
             catch(Exception e) {
@@ -144,7 +147,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
     private void setSocketRoute(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         if (ctx!=null && httpRequest!=null && httpRequest.uri()!=null) {
             AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
-            ctx.channel().attr(requestAttributeKey).set(httpRequest.copy());
+            ctx.channel().attr(requestAttributeKey).set(httpRequest);
         }
     }
 

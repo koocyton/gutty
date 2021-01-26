@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
+import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,10 @@ public class HttpParam {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpParam.class);
 
-    private static HttpParam httpParam = null;
+    // private static HttpParam httpParam = null;
     private FullHttpRequest httpRequest;
     private FullHttpResponse httpResponse;
+    private WebSocketFrame webSocketFrame;
     private ChannelHandlerContext ctx;
 
     private HttpParam() {}
@@ -61,6 +63,11 @@ public class HttpParam {
         }
         return httpParam;
         */
+    }
+
+    public HttpParam setWebSocketFrame(WebSocketFrame webSocketFrame) {
+        this.webSocketFrame = webSocketFrame;
+        return this;
     }
 
     // http headers
@@ -110,6 +117,30 @@ public class HttpParam {
             // ChannelHandlerContext
             if (parameterClazz == ChannelHandlerContext.class) {
                 params[ii] = ctx;
+            }
+            // websocket frame
+            else if (parameterClazz == WebSocketFrame.class) {
+                params[ii] = webSocketFrame;
+            }
+            // text websocket frame
+            else if (parameterClazz == TextWebSocketFrame.class && webSocketFrame instanceof TextWebSocketFrame) {
+                params[ii] = webSocketFrame;
+            }
+            // binary websocket frame
+            else if (parameterClazz == BinaryWebSocketFrame.class && webSocketFrame instanceof BinaryWebSocketFrame) {
+                params[ii] = webSocketFrame;
+            }
+            // ping websocket frame
+            else if (parameterClazz == PingWebSocketFrame.class && webSocketFrame instanceof PingWebSocketFrame) {
+                params[ii] = webSocketFrame;
+            }
+            // pong websocket frame
+            else if (parameterClazz == PongWebSocketFrame.class && webSocketFrame instanceof PongWebSocketFrame) {
+                params[ii] = webSocketFrame;
+            }
+            // close websocket frame
+            else if (parameterClazz == CloseWebSocketFrame.class && webSocketFrame instanceof CloseWebSocketFrame) {
+                params[ii] = webSocketFrame;
             }
             // Channel
             else if (parameterClazz == Channel.class) {

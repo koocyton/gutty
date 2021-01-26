@@ -2,6 +2,8 @@ package com.doopp.gutty.demo.socket;
 
 import com.doopp.gutty.framework.annotation.websocket.*;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +21,8 @@ public class HelloSocket {
     }
 
     @TextMessage
-    public void onTextMessage(FullHttpRequest httpRequest) {
-        // logger.info("httpRequest {}", httpRequest);
+    public void onTextMessage(FullHttpRequest httpRequest, TextWebSocketFrame textFrame) {
+        logger.info("textFrame {}", textFrame.text());
     }
 
     @BinaryMessage
@@ -29,8 +31,8 @@ public class HelloSocket {
     }
 
     @Message
-    public void onMessage() {
-
+    public void onMessage(WebSocketFrame webSocketFrame) {
+        logger.info("textFrame {}", webSocketFrame.getClass());
     }
 
     @Ping
