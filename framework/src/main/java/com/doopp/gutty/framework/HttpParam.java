@@ -29,7 +29,13 @@ public class HttpParam {
 
     private HttpParam() {}
 
-    public static HttpParam singleBuilder(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    public static HttpParam builder(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+        HttpParam httpParam = new HttpParam();
+        httpParam.httpRequest = httpRequest;
+        httpParam.httpResponse = httpResponse;
+        httpParam.ctx = ctx;
+        return httpParam;
+        /*
         if (httpParam==null) {
             httpParam = new HttpParam();
             httpParam.httpRequest = httpRequest;
@@ -37,9 +43,16 @@ public class HttpParam {
             httpParam.ctx = ctx;
         }
         return httpParam;
+        */
     }
 
-    public static HttpParam singleBuilder(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+    public static HttpParam builder(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+        HttpParam httpParam = new HttpParam();
+        httpParam.httpRequest = httpRequest;
+        // httpParam.httpResponse = httpResponse;
+        httpParam.ctx = ctx;
+        return httpParam;
+        /*
         if (httpParam==null) {
             httpParam = new HttpParam();
             httpParam.httpRequest = httpRequest;
@@ -47,6 +60,7 @@ public class HttpParam {
             httpParam.ctx = ctx;
         }
         return httpParam;
+        */
     }
 
     // http headers
@@ -369,7 +383,7 @@ public class HttpParam {
 
     private void buildFormParams() {
         if (httpRequest.content() != null) {
-            // httpRequest.retain();
+            httpRequest.retain();
             // set Request Decoder
             HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
             // loop data

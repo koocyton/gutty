@@ -82,7 +82,7 @@ public class Dispatcher {
         try {
             result = (httpRoute.getParameters().length==0)
                     ? httpRoute.getMethod().invoke(controller)
-                    : httpRoute.getMethod().invoke(controller, HttpParam.singleBuilder(ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
         catch(Exception e) {
             e.printStackTrace();

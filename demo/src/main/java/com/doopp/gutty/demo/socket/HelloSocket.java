@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Path;
-import java.nio.channels.Channel;
 
 @Socket
 @Path("/ws/game")
@@ -16,12 +15,12 @@ public class HelloSocket {
 
     @Open
     public void onConnect(FullHttpRequest httpRequest) {
-        logger.info("httpRequest {}", httpRequest);
+        // logger.info("httpRequest {}", httpRequest);
     }
 
     @TextMessage
     public void onTextMessage(FullHttpRequest httpRequest) {
-        logger.info("httpRequest {}", httpRequest);
+        // logger.info("httpRequest {}", httpRequest);
     }
 
     @BinaryMessage

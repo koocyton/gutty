@@ -54,8 +54,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
             } else {
                 handshaker.handshake(ctx.channel(), httpRequest);
-                callSocketMethod(ctx, httpRequest);
                 setSocketRoute(ctx, httpRequest);
+                callSocketMethod(ctx, httpRequest);
             }
             return;
         }
@@ -132,7 +132,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                 if ((method.getParameters().length == 0)) {
                     method.invoke(socket);
                 } else {
-                    method.invoke(socket, HttpParam.singleBuilder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                    method.invoke(socket, HttpParam.builder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
                 }
             }
             catch(Exception e) {
@@ -144,7 +144,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
     private void setSocketRoute(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         if (ctx!=null && httpRequest!=null && httpRequest.uri()!=null) {
             AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
-            ctx.channel().attr(requestAttributeKey).set(httpRequest);
+            ctx.channel().attr(requestAttributeKey).set(httpRequest.copy());
         }
     }
 
