@@ -20,8 +20,8 @@ public class HelloSocket {
     }
 
     @TextMessage
-    public void onTextMessage(Channel channel) {
-
+    public void onTextMessage(FullHttpRequest httpRequest) {
+        logger.info("httpRequest {}", httpRequest);
     }
 
     @BinaryMessage
