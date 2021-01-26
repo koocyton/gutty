@@ -226,7 +226,7 @@ public class Gutty {
             }
         }
         return resourceURL.getPath().startsWith("/")
-                ? Paths.get(resourceURL.getPath().substring(1))
+                ? Paths.get(resourceURL.getPath().substring(0))
                 : Paths.get(resourceURL.getPath());
     }
 }

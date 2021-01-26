@@ -87,7 +87,7 @@ class Netty {
                 pipeline.addLast(new ChunkedWriteHandler());
                 // websocket request
                 // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
-                pipeline.addLast(new WebSocketServerHandler(injector, "/ws", true));
+                pipeline.addLast(new WebSocketServerHandler(injector));
                 // static request
                 pipeline.addLast(new StaticFileRequestHandler());
                 // http request

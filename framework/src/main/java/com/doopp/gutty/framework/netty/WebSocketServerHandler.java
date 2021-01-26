@@ -14,31 +14,44 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class WebSocketServerHandler extends WebSocketServerProtocolHandler {
+public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private final Injector injector;
 
-    public WebSocketServerHandler(Injector injector, String websocketPath, boolean checkStartsWith){
-        super(websocketPath, checkStartsWith);
+    public WebSocketServerHandler(Injector injector) {
         this.injector = injector;
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
-            logger.info("msg <<<< {}", ((FullHttpRequest) msg).uri());
+            this.onConnect(ctx, (FullHttpRequest) msg);
         }
-        super.channelRead(ctx, msg);
+        callSocketMethod(ctx, msg);
     }
 
     private void onConnect(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         // is websocket
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
+            // Handshake
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                    getWebSocketLocation(httpRequest), null, true, 5 * 1024 * 1024);
+            WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(httpRequest);
+            if (handshaker == null) {
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+            } else {
+                handshaker.handshake(ctx.channel(), httpRequest);
+            }
             return;
         }
         ctx.fireChannelRead(httpRequest.retain());
+    }
+
+    private static String getWebSocketLocation(FullHttpRequest req) {
+        String location =  req.headers().get(HttpHeaderNames.HOST) + req.uri();
+        return "ws://" + location;
     }
 
     private void callSocketMethod(ChannelHandlerContext ctx, Object msg) {
