@@ -225,8 +225,8 @@ public class Gutty {
                 throw new RuntimeException(e);
             }
         }
-        return resourceURL.getPath().startsWith("/")
-                ? Paths.get(resourceURL.getPath().substring(0))
+        return (java.io.File.separator.equals("\\") && resourceURL.getPath().startsWith("/"))
+                ? Paths.get(resourceURL.getPath().substring(1))
                 : Paths.get(resourceURL.getPath());
     }
 }

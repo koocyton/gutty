@@ -19,6 +19,7 @@ public class HelloController {
 
     @GET
     @Path("/hello")
+    @Produces("application/json")
     public String hello(@CookieParam("user") String user) {
         return helloService.hello();
     }

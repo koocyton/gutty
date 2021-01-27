@@ -11,6 +11,8 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -88,6 +90,9 @@ public class Dispatcher {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+        // content type
+        String contentType = methodProductsValue(httpRoute.getMethod());
+        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         // return
         if (result instanceof String) {
             return ((String) result).getBytes();
@@ -196,6 +201,18 @@ public class Dispatcher {
         }
 
         return Pattern.compile(pattern.toString());
+    }
+
+    public String methodProductsValue(Method method) {
+        String contentType = MediaType.TEXT_HTML;
+        if (method != null && method.isAnnotationPresent(Produces.class)) {
+            StringBuilder _contentType = new StringBuilder();
+            for (String mediaType : method.getAnnotation(Produces.class).value()) {
+                _contentType.append((_contentType.toString().equals("")) ? mediaType : "; " + mediaType);
+            }
+            contentType = _contentType.toString().contains("charset") ? _contentType.toString() : _contentType + "; charset=UTF-8";
+        }
+        return contentType;
     }
 
     public static class SocketRoute {
