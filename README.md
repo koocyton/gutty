@@ -72,6 +72,14 @@ public class HelloController {
         logger.info("name {}", name);
         return helloService.hello();
     }
+
+    @POST
+    @Path("/user")
+    @Produces("application/json")
+    public User hello2(User user) {
+        logger.info("user {}", user);
+        return user;
+    }
 }
 ```
 
