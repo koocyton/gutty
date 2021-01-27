@@ -3,11 +3,9 @@ package com.doopp.gutty.framework;
 import com.doopp.gutty.framework.annotation.Controller;
 import com.doopp.gutty.framework.annotation.Service;
 import com.doopp.gutty.framework.annotation.websocket.Socket;
+import com.doopp.gutty.framework.json.HttpMessageConverter;
 import com.google.inject.*;
 import com.google.inject.name.Names;
-import io.netty.channel.ChannelHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import java.io.FileInputStream;
@@ -25,6 +23,8 @@ public class Gutty {
     private final List<Module> modules = new ArrayList<>();
 
     private final List<String> basePackages = new ArrayList<>();
+
+    private HttpMessageConverter httpMessageConverter;
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -59,6 +59,17 @@ public class Gutty {
     // 添加需要扫描的 package 的接口
     public Gutty basePackages(String... basePackages) {
         Collections.addAll(this.basePackages, basePackages);
+        return this;
+    }
+
+    // Json 处理类
+    public Gutty httpMessageConverter(Class<? extends HttpMessageConverter> clazz) {
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(HttpMessageConverter.class).to(clazz).in(Scopes.SINGLETON);
+            }
+        });
         return this;
     }
 

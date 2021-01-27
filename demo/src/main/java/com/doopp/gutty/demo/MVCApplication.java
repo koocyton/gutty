@@ -1,6 +1,7 @@
 package com.doopp.gutty.demo;
 
 import com.doopp.gutty.framework.Gutty;
+import com.doopp.gutty.framework.json.JacksonHttpMessageConverter;
 
 public class MVCApplication {
 
@@ -16,6 +17,7 @@ public class MVCApplication {
 //                    }
 //                })
                 .basePackages(MVCApplication.class.getPackage().getName())
+                .httpMessageConverter(JacksonHttpMessageConverter.class)
                 .start();
     }
 }

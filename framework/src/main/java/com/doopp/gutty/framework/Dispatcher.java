@@ -1,13 +1,11 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.websocket.*;
+import com.doopp.gutty.framework.json.HttpMessageConverter;
 import com.google.inject.Injector;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +17,6 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
 public class Dispatcher {
 
@@ -84,7 +80,7 @@ public class Dispatcher {
         try {
             result = (httpRoute.getParameters().length==0)
                     ? httpRoute.getMethod().invoke(controller)
-                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -92,6 +88,12 @@ public class Dispatcher {
         }
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
+        if (contentType.contains(MediaType.APPLICATION_JSON)) {
+            HttpMessageConverter httpMessageConverter = injector.getInstance(HttpMessageConverter.class);
+            if (httpMessageConverter!=null) {
+                result = httpMessageConverter.toJson(result);
+            }
+        }
         httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         // return
         if (result instanceof String) {

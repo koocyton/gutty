@@ -1,5 +1,6 @@
 package com.doopp.gutty.demo.controller;
 
+import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
 import com.doopp.gutty.framework.annotation.Controller;
 import com.google.inject.Inject;
@@ -37,5 +38,13 @@ public class HelloController {
     public String hello2(@FormParam("liu") Integer liu) {
         logger.info("liu {}", liu);
         return "hello2";
+    }
+
+    @POST
+    @Path("/json")
+    @Produces("application/json")
+    public User hello2(User user) {
+        logger.info("user {}", user);
+        return user;
     }
 }

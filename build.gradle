@@ -61,10 +61,10 @@ project(':framework') {
 		compile "javax.ws.rs:javax.ws.rs-api:${jaxrsVersion}"
 
 		// JSON
-		// compile "com.google.code.gson:gson:${gsonVersion}"
-		// compile "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
-		// compile "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
-		// compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+		compile "com.google.code.gson:gson:${gsonVersion}"
+		compile "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+		compile "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+		compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
 
 		// lombok
 		// compileOnly "org.projectlombok:lombok:${lombokVersion}"

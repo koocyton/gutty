@@ -1,6 +1,9 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.FileParam;
+import com.doopp.gutty.framework.json.HttpMessageConverter;
+import com.google.inject.Injector;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -11,9 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,24 +33,17 @@ public class HttpParam {
     private FullHttpResponse httpResponse;
     private WebSocketFrame webSocketFrame;
     private ChannelHandlerContext ctx;
+    private Injector injector;
 
     private HttpParam() {}
 
-    public static HttpParam builder(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    public static HttpParam builder(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         HttpParam httpParam = new HttpParam();
         httpParam.httpRequest = httpRequest;
         httpParam.httpResponse = httpResponse;
         httpParam.ctx = ctx;
+        httpParam.injector = injector;
         return httpParam;
-        /*
-        if (httpParam==null) {
-            httpParam = new HttpParam();
-            httpParam.httpRequest = httpRequest;
-            httpParam.httpResponse = httpResponse;
-            httpParam.ctx = ctx;
-        }
-        return httpParam;
-        */
     }
 
     public static HttpParam builder(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
@@ -54,15 +52,6 @@ public class HttpParam {
         // httpParam.httpResponse = httpResponse;
         httpParam.ctx = ctx;
         return httpParam;
-        /*
-        if (httpParam==null) {
-            httpParam = new HttpParam();
-            httpParam.httpRequest = httpRequest;
-            // httpParam.httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            httpParam.ctx = ctx;
-        }
-        return httpParam;
-        */
     }
 
     public HttpParam setWebSocketFrame(WebSocketFrame webSocketFrame) {
@@ -194,12 +183,46 @@ public class HttpParam {
                     throw new RuntimeException(e);
                 }
             }
+            // json
+            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains(MediaType.APPLICATION_JSON)) {
+                params[ii] = jsonParamCase(httpRequest.content(), parameterClazz);
+            }
+            // protobuf
+            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains("application/x-protobuf")) {
+                params[ii] = protobufParamCase(httpRequest.content(), parameterClazz);
+            }
             // null
             else {
                 params[ii] = null;
             }
         }
         return params;
+    }
+
+    private <T> T jsonParamCase(ByteBuf content, Class<T> parameterClazz) {
+        HttpMessageConverter httpMessageConverter = injector.getInstance(HttpMessageConverter.class);
+        if (httpMessageConverter == null) {
+            return null;
+        }
+        byte[] bytes = new byte[content.capacity()];
+        content.readBytes(bytes);
+        return httpMessageConverter.fromJson(new String(bytes), parameterClazz);
+    }
+
+    private <T> T protobufParamCase(ByteBuf content, Class<T> parameterClazz) {
+        try {
+            Method method = parameterClazz.getMethod("parseFrom", byte[].class);
+            byte[] bytes = new byte[content.readableBytes()];
+            content.readBytes(bytes);
+            return parameterClazz.cast(method.invoke(parameterClazz, (Object) bytes));
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void queryObjectParamCase() {
+
     }
 
     private <T> T baseParamCase(String value, Class<T> clazz) {

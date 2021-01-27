@@ -30,7 +30,7 @@
 * [√] 识别请求的 @Post @Get @Delete @Put 的 httpMethod
 * [√] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
 * [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
-* [ ] Controller 识别 Json 请求
+* [√] Controller 识别 和输出 Json 请求
 * [ ] Controller 识别 Protobuf 请求
 * [ ] Session  RequestAttribute
 
