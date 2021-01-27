@@ -28,7 +28,7 @@
 * [√] 在类上加注解（@Service @Controller @Socket）自动扫描完成依赖注入
 * [√] 通过 @Path 完成路由的配置，类和方法上的取值会自动连接
 * [√] 识别请求的 @Post @Get @Delete @Put 的 httpMethod
-* [ ] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
+* [√] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
 * [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
 * [ ] Controller 识别 Json 请求
 * [ ] Controller 识别 Protobuf 请求
