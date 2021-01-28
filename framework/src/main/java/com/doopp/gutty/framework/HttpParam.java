@@ -1,6 +1,7 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.FileParam;
+import com.doopp.gutty.framework.annotation.RequestAttribute;
 import com.doopp.gutty.framework.json.MessageConverter;
 import com.doopp.gutty.framework.view.ModelMap;
 import com.google.inject.Injector;
@@ -10,6 +11,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.*;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +160,12 @@ public class HttpParam {
             // response
             else if (parameterClazz == HttpHeaders.class) {
                 params[ii] = httpRequest.headers();
+            }
+            // Request Attribute
+            else if (parameter.getAnnotation(RequestAttribute.class) != null) {
+                String annotationKey = parameter.getAnnotation(RequestAttribute.class).value();
+                Attribute<Object> attr = ctx.channel().attr(AttributeKey.valueOf(annotationKey));
+                params[ii] = (attr!=null) ? attr.get() : null;
             }
             // CookieParam : Set<Cookie>
             else if (parameter.getAnnotation(CookieParam.class) != null) {
