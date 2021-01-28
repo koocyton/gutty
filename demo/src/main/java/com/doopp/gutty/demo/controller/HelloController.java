@@ -3,12 +3,14 @@ package com.doopp.gutty.demo.controller;
 import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
 import com.doopp.gutty.framework.annotation.Controller;
+import com.doopp.gutty.framework.annotation.FileParam;
 import com.doopp.gutty.framework.view.ModelMap;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
+import java.io.File;
 
 @Path("/api")
 @Controller
@@ -54,5 +56,13 @@ public class HelloController {
     public User hello2(User user) {
         logger.info("user {}", user);
         return user;
+    }
+
+    @POST
+    @Path("/upload")
+    @Produces("application/json")
+    public String upload(@FileParam(value = "file", path = "d:/tmp") File uploadFile) {
+        logger.info("file {}", uploadFile);
+        return "hello";
     }
 }

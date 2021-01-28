@@ -26,6 +26,7 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] Support @Product , json or protobuf
 * [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
 * [√] Support Json and Protobuf
+* [√] file upload , support @FileParam
 * [√] Support Freemarker and Thymeleaf
 * [ ] Session  RequestAttribute
 

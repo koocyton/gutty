@@ -32,6 +32,7 @@
 * [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
 * [√] Controller 识别 和输出 Json 请求
 * [√] Controller 识别 Protobuf 请求
+* [√] 文件上传 @FileParam
 * [√] 增加模板，自带 Freemarker 和 Thymeleaf
 * [ ] Session  RequestAttribute
 
