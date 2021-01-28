@@ -146,6 +146,10 @@ public class HttpParam {
             else if (parameterClazz == HttpRequest.class || parameterClazz == FullHttpRequest.class) {
                 params[ii] = httpRequest;
             }
+            // model map
+            else if (parameterClazz == ModelMap.class) {
+                params[ii] = modelMap;
+            }
             // response
             else if (parameterClazz == HttpResponse.class || parameterClazz == FullHttpResponse.class) {
                 params[ii] = httpResponse;

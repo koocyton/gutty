@@ -3,6 +3,7 @@ package com.doopp.gutty.demo.controller;
 import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
 import com.doopp.gutty.framework.annotation.Controller;
+import com.doopp.gutty.framework.view.ModelMap;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,8 @@ public class HelloController {
 
     @GET
     @Path("/template")
-    public String template() {
+    public String template(ModelMap modelMap) {
+        modelMap.addAttribute("hello", "hello freemarker !");
         return "hello.template";
     }
 
