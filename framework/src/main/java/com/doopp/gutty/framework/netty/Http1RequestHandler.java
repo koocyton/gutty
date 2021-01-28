@@ -9,6 +9,8 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.NotFoundException;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -31,8 +33,15 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
 
         // init httpResponse
         FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-        // execute route
-        byte[] result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
+        byte[] result;
+        try {
+            // execute route
+            result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
+        }
+        catch (Exception e) {
+            sendError(ctx, HttpResponseStatus.NOT_FOUND);
+            return;
+        }
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
