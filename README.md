@@ -128,6 +128,16 @@ public class HelloSocket {
     }
 
     @TextMessage
+    public void onJsonMessage(@JsonFrame User user) {
+        logger.info("user {}", user.getName());
+    }
+
+    @BinaryMessage
+    public void onProtobufMessage(@ProtobufFrame User user) {
+        logger.info("user {}", user);
+    }
+
+    @TextMessage
     public void onTextMessage(TextWebSocketFrame textFrame) {
         logger.info("textFrame {}", textFrame.text());
     }
