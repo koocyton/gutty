@@ -35,7 +35,7 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] Use @Path config websocket route
 * [√] Support recevie @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong
 * [√] Support WebsocketFrame to revcive params
-* [ ] protobuf , json 的自动编码，解码到变量
+* [√] protobuf , json 的自动编码，解码到变量
 * [ ] ... more
 ```
 

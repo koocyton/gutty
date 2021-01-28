@@ -2,6 +2,8 @@ package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.FileParam;
 import com.doopp.gutty.framework.annotation.RequestAttribute;
+import com.doopp.gutty.framework.annotation.websocket.JsonFrame;
+import com.doopp.gutty.framework.annotation.websocket.ProtobufFrame;
 import com.doopp.gutty.framework.json.MessageConverter;
 import com.doopp.gutty.framework.view.ModelMap;
 import com.google.inject.Injector;
@@ -51,11 +53,12 @@ public class HttpParam {
         return httpParam;
     }
 
-    public static HttpParam builder(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+    public static HttpParam builder(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         HttpParam httpParam = new HttpParam();
         httpParam.httpRequest = httpRequest;
         // httpParam.httpResponse = httpResponse;
         httpParam.ctx = ctx;
+        httpParam.injector = injector;
         return httpParam;
     }
 
@@ -204,12 +207,20 @@ public class HttpParam {
                 }
             }
             // json
-            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains(MediaType.APPLICATION_JSON)) {
+            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) !=null && httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains(MediaType.APPLICATION_JSON)) {
                 params[ii] = jsonParamCase(httpRequest.content(), parameterClazz);
             }
             // protobuf
-            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains("application/x-protobuf")) {
+            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) !=null && httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains("application/x-protobuf")) {
                 params[ii] = protobufParamCase(httpRequest.content(), parameterClazz);
+            }
+            // socket json
+            else if (parameter.getAnnotation(JsonFrame.class) != null && webSocketFrame instanceof TextWebSocketFrame) {
+                params[ii] = jsonParamCase(webSocketFrame.content(), parameterClazz);
+            }
+            // socket protobuf
+            else if (parameter.getAnnotation(ProtobufFrame.class) != null && webSocketFrame instanceof BinaryWebSocketFrame) {
+                params[ii] = protobufParamCase(webSocketFrame.content(), parameterClazz);
             }
             // null
             else {

@@ -132,10 +132,10 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                 if ((method.getParameters().length == 0)) {
                     method.invoke(socket);
                 } else if (msg instanceof FullHttpRequest) {
-                    method.invoke(socket, HttpParam.builder(ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                    method.invoke(socket, HttpParam.builder(injector, ctx, httpRequest).getParams(method.getParameters(), socketRoute.getPathParamMap()));
                 }
                 else if (msg instanceof WebSocketFrame) {
-                    method.invoke(socket, HttpParam.builder(ctx, httpRequest).setWebSocketFrame((WebSocketFrame) msg).getParams(method.getParameters(), socketRoute.getPathParamMap()));
+                    method.invoke(socket, HttpParam.builder(injector, ctx, httpRequest).setWebSocketFrame((WebSocketFrame) msg).getParams(method.getParameters(), socketRoute.getPathParamMap()));
                 }
             }
             catch(Exception e) {

@@ -41,7 +41,7 @@
 * [√] Websocket 的路由通过类的 @Path 完成配置
 * [√] 通过方法上的注解 @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong 完成不同数据包的传递
 * [√] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
-* [ ] protobuf , json 的自动编码，解码到变量
+* [√] protobuf , json 的自动编码，解码到变量
 * [ ] 长连接的参数还需要补充和完善
 ```
 

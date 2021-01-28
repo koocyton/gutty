@@ -1,5 +1,6 @@
 package com.doopp.gutty.demo.socket;
 
+import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.framework.annotation.websocket.*;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -21,9 +22,14 @@ public class HelloSocket {
         // logger.info("httpRequest {}", httpRequest);
     }
 
+    //@TextMessage
+    //public void onTextMessage(FullHttpRequest httpRequest, TextWebSocketFrame textFrame) {
+    //    logger.info("textFrame {}", textFrame.text());
+    //}
+
     @TextMessage
-    public void onTextMessage(FullHttpRequest httpRequest, TextWebSocketFrame textFrame) {
-        logger.info("textFrame {}", textFrame.text());
+    public void onJsonMessage(@JsonFrame User user) {
+        logger.info("user {}", user.getName());
     }
 
     @BinaryMessage
@@ -31,10 +37,15 @@ public class HelloSocket {
         logger.info("binaryFrame {}", binaryWebSocketFrame.content());
     }
 
-    @Message
-    public void onMessage(WebSocketFrame webSocketFrame) {
-        logger.info("onMessage : {}", webSocketFrame.getClass());
+    @BinaryMessage
+    public void onProtobufMessage(@ProtobufFrame User user) {
+        logger.info("user {}", user);
     }
+
+    //@Message
+    //public void onMessage(WebSocketFrame webSocketFrame) {
+        // logger.info("onMessage : {}", webSocketFrame.getClass());
+    //}
 
     @Ping
     public void onPing() {

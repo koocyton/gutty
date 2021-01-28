@@ -86,7 +86,7 @@
     <script>
         let ws = new WebSocketService("/ws/game");
         ws.onOpen(function(s){
-            this.send("hello");
+            this.send("{\"name\":\"liuyi\"}");
             window.console.log(s);
         })
     </script>
