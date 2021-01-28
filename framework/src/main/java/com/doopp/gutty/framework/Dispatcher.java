@@ -1,7 +1,9 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.websocket.*;
-import com.doopp.gutty.framework.json.HttpMessageConverter;
+import com.doopp.gutty.framework.json.MessageConverter;
+import com.doopp.gutty.framework.view.ModelMap;
+import com.doopp.gutty.framework.view.ViewResolver;
 import com.google.inject.Injector;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -14,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,12 +78,14 @@ public class Dispatcher {
         if (controller==null) {
             throw new RuntimeException("Oho ... Not found controller : " + httpRoute.getClazz());
         }
+        // ModelMap
+        ModelMap modelMap = new ModelMap();
         // method invoke
         Object result;
         try {
             result = (httpRoute.getParameters().length==0)
                     ? httpRoute.getMethod().invoke(controller)
-                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -89,9 +94,15 @@ public class Dispatcher {
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
         if (contentType.contains(MediaType.APPLICATION_JSON)) {
-            HttpMessageConverter httpMessageConverter = injector.getInstance(HttpMessageConverter.class);
-            if (httpMessageConverter!=null) {
-                result = httpMessageConverter.toJson(result);
+            MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+            if (messageConverter !=null) {
+                result = messageConverter.toJson(result);
+            }
+        }
+        else if (result instanceof String && contentType.contains(MediaType.TEXT_HTML)) {
+            ViewResolver viewResolver = injector.getInstance(ViewResolver.class);
+            if (viewResolver != null) {
+                result = viewResolver.template(modelMap, (String) result);
             }
         }
         httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);

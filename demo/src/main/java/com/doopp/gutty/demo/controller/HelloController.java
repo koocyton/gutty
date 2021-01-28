@@ -19,6 +19,12 @@ public class HelloController {
     private HelloService helloService;
 
     @GET
+    @Path("/template")
+    public String template() {
+        return "hello.template";
+    }
+
+    @GET
     @Path("/hello")
     @Produces("application/json")
     public String hello(@CookieParam("user") String user) {

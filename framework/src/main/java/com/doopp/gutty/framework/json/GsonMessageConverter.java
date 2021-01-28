@@ -5,11 +5,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.LongSerializationPolicy;
 
-public class GsonHttpMessageConverter implements HttpMessageConverter {
+public class GsonMessageConverter implements MessageConverter {
 
     private Gson gson;
 
-    public GsonHttpMessageConverter() {
+    public GsonMessageConverter() {
         this.gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             // .serializeNulls()
@@ -18,7 +18,7 @@ public class GsonHttpMessageConverter implements HttpMessageConverter {
             .create();
     }
 
-    public GsonHttpMessageConverter(Gson gson) {
+    public GsonMessageConverter(Gson gson) {
         assert gson!=null : "A Gson instance is required";
         this.gson = gson;
     }

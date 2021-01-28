@@ -9,11 +9,11 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
-public class JacksonHttpMessageConverter implements HttpMessageConverter {
+public class JacksonMessageConverter implements MessageConverter {
 
     private ObjectMapper objectMapper;
 
-    public JacksonHttpMessageConverter() {
+    public JacksonMessageConverter() {
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
@@ -35,7 +35,7 @@ public class JacksonHttpMessageConverter implements HttpMessageConverter {
                 .registerModule(simpleModule);
     }
 
-    public JacksonHttpMessageConverter(ObjectMapper objectMapper) {
+    public JacksonMessageConverter(ObjectMapper objectMapper) {
         assert objectMapper!=null : "A ObjectMapper instance is required";
         this.objectMapper = objectMapper;
     }

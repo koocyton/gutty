@@ -26,6 +26,8 @@ subprojects {
 		guiceVersion = '4.2.3'
 		jaxrsVersion = '2.1.1'
 		gsonVersion = '2.8.2'
+		thymeleafVersion = '3.0.11.RELEASE'
+		freemarkerVersion = '2.3.28'
 	}
 
 	repositories {
@@ -69,6 +71,9 @@ project(':framework') {
 		// lombok
 		// compileOnly "org.projectlombok:lombok:${lombokVersion}"
 		// annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+		compile "org.thymeleaf:thymeleaf:${thymeleafVersion}"
+		compile "org.freemarker:freemarker:${freemarkerVersion}"
 
 		// mysql
 		// compile 'com.zaxxer:HikariCP:3.4.5'

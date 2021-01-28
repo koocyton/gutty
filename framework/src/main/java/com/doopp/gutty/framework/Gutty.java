@@ -3,7 +3,8 @@ package com.doopp.gutty.framework;
 import com.doopp.gutty.framework.annotation.Controller;
 import com.doopp.gutty.framework.annotation.Service;
 import com.doopp.gutty.framework.annotation.websocket.Socket;
-import com.doopp.gutty.framework.json.HttpMessageConverter;
+import com.doopp.gutty.framework.json.MessageConverter;
+import com.doopp.gutty.framework.view.ViewResolver;
 import com.google.inject.*;
 import com.google.inject.name.Names;
 
@@ -24,7 +25,7 @@ public class Gutty {
 
     private final List<String> basePackages = new ArrayList<>();
 
-    private HttpMessageConverter httpMessageConverter;
+    private MessageConverter messageConverter;
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -63,11 +64,22 @@ public class Gutty {
     }
 
     // Json 处理类
-    public Gutty httpMessageConverter(Class<? extends HttpMessageConverter> clazz) {
+    public Gutty messageConverter(Class<? extends MessageConverter> clazz) {
         modules.add(new AbstractModule() {
             @Override
             protected void configure() {
-                bind(HttpMessageConverter.class).to(clazz).in(Scopes.SINGLETON);
+                bind(MessageConverter.class).to(clazz).in(Scopes.SINGLETON);
+            }
+        });
+        return this;
+    }
+
+    // 模板 处理类
+    public Gutty viewResolver(Class<? extends ViewResolver> clazz) {
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(ViewResolver.class).to(clazz).in(Scopes.SINGLETON);
             }
         });
         return this;

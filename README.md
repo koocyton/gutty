@@ -11,10 +11,10 @@
 
 #### 简介
 ```
-接触到 Java 的这三四年里，一直很喜欢 Netty 和 Guice ，想把他们整合起来！
-网上有很多的例子，但是这些例子也多是基于 Netty 或 Guice 特性的，缺少值的自动传入和路由注解等功能，这是我最爱的。
-去年将 Spring 出的 Reactor-Netty 和 Guice 整合了一遍，因为他已经处理好了路由，还有长连接，
-只用想办法把参数自动传入，整合起来省事不少, 但是 Reactor 那个写法确实不习惯，有些方法也不熟悉，用起来常常绕晕自己。
+一直很喜欢 Netty 和 Guice ，简单好用，
+网上有不少整合的例子，但是这些例子也多是基于 Netty 或 Guice 特性的，缺少值的自动传入和路由注解等功能，这是我最爱的。
+之前将 Spring 出的 Reactor-Netty 和 Guice 整合了一遍，因为他已经处理好了路由，还有长连接，
+只用把参数自动传入，整合起来省事不少, 但是 Reactor 那个写法确实不习惯，有些方法也不熟悉，用起来常常绕晕自己。
 最近有点时间，撸起袖子开始整，其实写的特别慢，特别是开始处理长连接时，几十行，边学习边摸索用了四五天，想明白了写，没想明白玩！
 所以，目前代码质量都是基于摸索下成型的，后面空再学习和整理。 
 ```
@@ -31,7 +31,8 @@
 * [√] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
 * [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
 * [√] Controller 识别 和输出 Json 请求
-* [ ] Controller 识别 Protobuf 请求
+* [√] Controller 识别 Protobuf 请求
+* [√] 增加模板，自带 Freemarker 和 Thymeleaf
 * [ ] Session  RequestAttribute
 
  Websocket
@@ -50,6 +51,8 @@
 public static void main(String[] args) {
     new Gutty().loadProperties(args)
             .basePackages(MVCApplication.class.getPackage().getName())
+            .messageConverter(JacksonMessageConverter.class)
+            .viewResolver(FreemarkerViewResolver.class)
             .start();
 }
 ```
@@ -64,6 +67,12 @@ public class HelloController {
 
     @Inject
     private HelloService helloService;
+
+    @GET
+    @Path("/template")
+    public String template() {
+        return "hello.template";
+    }
 
     @GET
     @Path("/hello/{id}/{name}")

@@ -1,6 +1,6 @@
 package com.doopp.gutty.framework.json;
 
-public interface HttpMessageConverter {
+public interface MessageConverter {
 
     String toJson(Object object);
 

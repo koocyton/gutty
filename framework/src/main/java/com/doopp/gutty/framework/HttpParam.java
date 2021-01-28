@@ -1,7 +1,8 @@
 package com.doopp.gutty.framework;
 
 import com.doopp.gutty.framework.annotation.FileParam;
-import com.doopp.gutty.framework.json.HttpMessageConverter;
+import com.doopp.gutty.framework.json.MessageConverter;
+import com.doopp.gutty.framework.view.ModelMap;
 import com.google.inject.Injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -34,6 +35,7 @@ public class HttpParam {
     private WebSocketFrame webSocketFrame;
     private ChannelHandlerContext ctx;
     private Injector injector;
+    private ModelMap modelMap;
 
     private HttpParam() {}
 
@@ -56,6 +58,11 @@ public class HttpParam {
 
     public HttpParam setWebSocketFrame(WebSocketFrame webSocketFrame) {
         this.webSocketFrame = webSocketFrame;
+        return this;
+    }
+
+    public HttpParam setModelMap(ModelMap modelMap) {
+        this.modelMap = modelMap;
         return this;
     }
 
@@ -200,13 +207,13 @@ public class HttpParam {
     }
 
     private <T> T jsonParamCase(ByteBuf content, Class<T> parameterClazz) {
-        HttpMessageConverter httpMessageConverter = injector.getInstance(HttpMessageConverter.class);
-        if (httpMessageConverter == null) {
+        MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+        if (messageConverter == null) {
             return null;
         }
         byte[] bytes = new byte[content.capacity()];
         content.readBytes(bytes);
-        return httpMessageConverter.fromJson(new String(bytes), parameterClazz);
+        return messageConverter.fromJson(new String(bytes), parameterClazz);
     }
 
     private <T> T protobufParamCase(ByteBuf content, Class<T> parameterClazz) {
