@@ -39,6 +39,7 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
             result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
         }
         catch (Exception e) {
+            e.printStackTrace();
             sendError(ctx, HttpResponseStatus.NOT_FOUND);
             return;
         }

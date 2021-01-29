@@ -45,9 +45,12 @@ public class HelloController {
 
     @POST
     @Path("/hello")
-    public String hello2(@FormParam("liu") Integer liu) {
+    @Produces("application/json")
+    public User hello2(@FormParam("liu") String liu) {
         logger.info("liu {}", liu);
-        return "hello2";
+        User user = new User();
+        user.setName(liu);
+        return user;
     }
 
     @POST

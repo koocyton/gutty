@@ -3,6 +3,7 @@ package com.doopp.gutty.framework;
 import com.doopp.gutty.framework.annotation.Controller;
 import com.doopp.gutty.framework.annotation.Service;
 import com.doopp.gutty.framework.annotation.websocket.Socket;
+import com.doopp.gutty.framework.filter.Filter;
 import com.doopp.gutty.framework.json.MessageConverter;
 import com.doopp.gutty.framework.view.ViewResolver;
 import com.google.inject.*;
@@ -25,7 +26,7 @@ public class Gutty {
 
     private final List<String> basePackages = new ArrayList<>();
 
-    private MessageConverter messageConverter;
+    private final Map<Class<?>, Class<?>> modulesBindClassMap = new HashMap<>();
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -65,28 +66,49 @@ public class Gutty {
 
     // Json 处理类
     public Gutty messageConverter(Class<? extends MessageConverter> clazz) {
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(MessageConverter.class).to(clazz).in(Scopes.SINGLETON);
-            }
-        });
+        if (clazz!=null) {
+            modulesBindClassMap.put(MessageConverter.class, clazz);
+        }
         return this;
     }
 
     // 模板 处理类
     public Gutty viewResolver(Class<? extends ViewResolver> clazz) {
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(ViewResolver.class).to(clazz).in(Scopes.SINGLETON);
+        if (clazz!=null) {
+            modulesBindClassMap.put(ViewResolver.class, clazz);
+        }
+        return this;
+    }
+
+    // 模板 处理类
+    public Gutty requestFilters(Class<? extends Filter>... filters) {
+        if (filters==null) {
+            return this;
+        }
+        for (Class<? extends Filter> filterClass : filters) {
+            if (filterClass==null) {
+                continue;
             }
-        });
+            modulesBindClassMap.put(Filter.class, filterClass);
+        }
         return this;
     }
 
     // 启动服务
     public void start() {
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                modulesBindClassMap.forEach(this::binder);
+            }
+            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
+                if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
+                    return;
+                }
+                Class<? extends T> clazzT = (Class<? extends T>) clazz;
+                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+            }
+        });
         // 获取包下的所有类
         List<Class<?>> classList = classList();
         // 将有注释的类添加到注入服务里
@@ -166,7 +188,9 @@ public class Gutty {
                 for(Class<?> clazz : classList) {
                     if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
                         if (clazz.getInterfaces().length>=1) {
-                            binder(clazz.getInterfaces()[0], clazz);
+                            for (Class<?> anInterface : clazz.getInterfaces()) {
+                                binder(anInterface, clazz);
+                            }
                         }
                         else {
                             bind(clazz).in(Scopes.SINGLETON);
@@ -176,7 +200,10 @@ public class Gutty {
             }
             // bind class to interface
             private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
-                Class<T> clazzT = (Class<T>) clazz;
+                if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
+                    return;
+                }
+                Class<? extends T> clazzT = (Class<? extends T>) clazz;
                 Service serviceAnnotation = clazzT.getAnnotation(Service.class);
                 if (serviceAnnotation!=null && !serviceAnnotation.value().equals("")) {
                     bind(interfaceClazz)

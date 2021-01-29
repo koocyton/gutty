@@ -9,17 +9,18 @@ public class MVCApplication {
     public static void main(String[] args) {
         new Gutty()
                 .loadProperties(args)
-//                .addModules(new AbstractModule() {
-//                    @Singleton
-//                    @Provides
-//                    @Named("executeGroup")
-//                    public EventLoopGroup executeGroup() {
-//                        return new NioEventLoopGroup();
-//                    }
-//                })
+                // .addModules(new AbstractModule() {
+                //    @Singleton
+                //    @Provides
+                //    @Named("executeGroup")
+                //    public EventLoopGroup executeGroup() {
+                //        return new NioEventLoopGroup();
+                //    }
+                // })
                 .basePackages(MVCApplication.class.getPackage().getName())
                 .messageConverter(JacksonMessageConverter.class)
                 .viewResolver(FreemarkerViewResolver.class)
+                .requestFilters(null, null)
                 .start();
     }
 }
