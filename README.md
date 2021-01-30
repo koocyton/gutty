@@ -35,6 +35,7 @@
 * [√] 文件上传 @FileParam
 * [√] 增加模板，自带 Freemarker 和 Thymeleaf
 * [ ] Session  RequestAttribute
+* [ ] filter 支持
 
  Websocket
 
@@ -44,6 +45,7 @@
 * [√] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
 * [√] protobuf , json 的自动编码，解码到变量
 * [ ] 长连接的参数还需要补充和完善
+* [ ] filter 支持
 ```
 
 #### 示例
