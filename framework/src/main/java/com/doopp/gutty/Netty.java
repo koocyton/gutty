@@ -1,5 +1,6 @@
 package com.doopp.gutty;
 
+import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.netty.Http1RequestHandler;
 import com.doopp.gutty.netty.StaticFileRequestHandler;
 import com.doopp.gutty.netty.WebSocketServerHandler;
@@ -10,6 +11,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -84,7 +86,18 @@ class Netty {
                 pipeline.addLast(new HttpObjectAggregator(65536));
                 // that adds support for writing a large data stream
                 pipeline.addLast(new ChunkedWriteHandler());
-                // websocket request
+                // filter
+                pipeline.addLast(new SimpleChannelInboundHandler<Object>() {
+                    @Override
+                    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        Filter filter = injector.getInstance(Filter.class);
+                        if (msg instanceof FullHttpRequest) {
+                            filter.doFilter(ctx, (FullHttpRequest) msg);
+                            ctx.fireChannelRead(((FullHttpRequest) msg).retain());
+                        }
+                    }
+                });
+                // websocket
                 // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
                 pipeline.addLast(new WebSocketServerHandler(injector));
                 // static request
