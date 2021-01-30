@@ -2,6 +2,7 @@
 .idea
 .gradle
 .vscode
+.meghanada
 *.iml
 build
 out
