@@ -1,6 +1,6 @@
 package com.doopp.gutty.demo.filter;
 
-import com.doopp.gutty.framework.filter.Filter;
+import com.doopp.gutty.filter.Filter;
 
 public class ApiFilter implements Filter {
 

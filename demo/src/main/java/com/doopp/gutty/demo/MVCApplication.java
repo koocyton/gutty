@@ -1,9 +1,9 @@
 package com.doopp.gutty.demo;
 
 import com.doopp.gutty.demo.filter.ApiFilter;
-import com.doopp.gutty.framework.Gutty;
-import com.doopp.gutty.framework.json.JacksonMessageConverter;
-import com.doopp.gutty.framework.view.FreemarkerViewResolver;
+import com.doopp.gutty.Gutty;
+import com.doopp.gutty.json.JacksonMessageConverter;
+import com.doopp.gutty.view.FreemarkerViewResolver;
 
 public class MVCApplication {
 

@@ -2,9 +2,9 @@ package com.doopp.gutty.demo.controller;
 
 import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
-import com.doopp.gutty.framework.annotation.Controller;
-import com.doopp.gutty.framework.annotation.FileParam;
-import com.doopp.gutty.framework.view.ModelMap;
+import com.doopp.gutty.annotation.Controller;
+import com.doopp.gutty.annotation.FileParam;
+import com.doopp.gutty.view.ModelMap;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
