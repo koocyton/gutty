@@ -59,13 +59,13 @@ public class Gutty {
     }
 
     // 添加需要扫描的 package 的接口
-    public Gutty basePackages(String... basePackages) {
+    public Gutty setBasePackages(String... basePackages) {
         Collections.addAll(this.basePackages, basePackages);
         return this;
     }
 
     // Json 处理类
-    public Gutty messageConverter(Class<? extends MessageConverter> clazz) {
+    public Gutty setMessageConverter(Class<? extends MessageConverter> clazz) {
         if (clazz!=null) {
             modulesBindClassMap.put(MessageConverter.class, clazz);
         }
@@ -73,7 +73,7 @@ public class Gutty {
     }
 
     // 模板 处理类
-    public Gutty viewResolver(Class<? extends ViewResolver> clazz) {
+    public Gutty setViewResolver(Class<? extends ViewResolver> clazz) {
         if (clazz!=null) {
             modulesBindClassMap.put(ViewResolver.class, clazz);
         }
@@ -81,7 +81,7 @@ public class Gutty {
     }
 
     // 模板 处理类
-    public Gutty requestFilters(Class<? extends Filter>... filters) {
+    public Gutty addFilters(Class<? extends Filter>... filters) {
         if (filters==null) {
             return this;
         }
@@ -96,17 +96,19 @@ public class Gutty {
 
     // 启动服务
     public void start() {
-        modules.add(new AbstractModule() {
+        modules.add(new Module() {
             @Override
-            protected void configure() {
-                modulesBindClassMap.forEach(this::binder);
+            public void configure(Binder binder) {
+                modulesBindClassMap.forEach((c1, c2)->{
+                    bind(binder, c1, c2);
+                });
             }
-            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
+            private <T> void bind(Binder binder, Class<T> interfaceClazz, Class<?> clazz) {
                 if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
                     return;
                 }
                 Class<? extends T> clazzT = (Class<? extends T>) clazz;
-                bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                binder.bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
             }
         });
         // 获取包下的所有类

@@ -17,10 +17,10 @@ public class MVCApplication {
                 //        return new NioEventLoopGroup();
                 //    }
                 // })
-                .basePackages(MVCApplication.class.getPackage().getName())
-                .messageConverter(JacksonMessageConverter.class)
-                .viewResolver(FreemarkerViewResolver.class)
-                .requestFilters(null, null)
+                .setBasePackages(MVCApplication.class.getPackage().getName())
+                .setMessageConverter(JacksonMessageConverter.class)
+                .setViewResolver(FreemarkerViewResolver.class)
+                .addFilters(null, null)
                 .start();
     }
 }
