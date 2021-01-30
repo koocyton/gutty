@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.ws.rs.core.MediaType;
 import java.io.*;
 
 public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -39,7 +40,11 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         // set length
         httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
         // media type
-        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, mimetypesFileTypeMap.getContentType(requestUri));
+        String contentType = mimetypesFileTypeMap.getContentType(requestUri);
+        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        if (contentType.contains("text/")) {
+            httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType+";charset=utf-8");
+        }
         // keepAlive
         boolean keepAlive = HttpUtil.isKeepAlive(httpRequest);
         if (!keepAlive) {

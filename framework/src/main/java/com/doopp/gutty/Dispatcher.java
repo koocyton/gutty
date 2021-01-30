@@ -1,7 +1,6 @@
 package com.doopp.gutty;
 
 import com.doopp.gutty.annotation.websocket.*;
-import com.doopp.gutty.framework.annotation.websocket.*;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ModelMap;
 import com.doopp.gutty.view.ViewResolver;
