@@ -81,15 +81,9 @@ public class Gutty {
     }
 
     // 模板 处理类
-    public Gutty addFilters(Class<? extends Filter>... filters) {
-        if (filters==null) {
-            return this;
-        }
-        for (Class<? extends Filter> filterClass : filters) {
-            if (filterClass==null) {
-                continue;
-            }
-            modulesBindClassMap.put(Filter.class, filterClass);
+    public Gutty addFilter(Class<? extends Filter> clazz) {
+        if (clazz!=null) {
+            modulesBindClassMap.put(Filter.class, clazz);
         }
         return this;
     }
@@ -184,37 +178,37 @@ public class Gutty {
     // 扫描 @Service 和 @Controller  @Socket
     // 将他们加入到 Module 里给 injector 调用
     private void annotationClass2Injector(List<Class<?>> classList) {
-        modules.add(new AbstractModule() {
+        modules.add(new Module() {
             @Override
-            protected void configure() {
+            public void configure(Binder binder) {
                 for(Class<?> clazz : classList) {
                     if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
                         if (clazz.getInterfaces().length>=1) {
                             for (Class<?> anInterface : clazz.getInterfaces()) {
-                                binder(anInterface, clazz);
+                                bind(binder, anInterface, clazz);
                             }
                         }
                         else {
-                            bind(clazz).in(Scopes.SINGLETON);
+                            binder.bind(clazz).in(Scopes.SINGLETON);
                         }
                     }
                 }
             }
             // bind class to interface
-            private <T> void binder(Class<T> interfaceClazz, Class<?> clazz) {
+            private <T> void bind(Binder binder, Class<T> interfaceClazz, Class<?> clazz) {
                 if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
                     return;
                 }
                 Class<? extends T> clazzT = (Class<? extends T>) clazz;
                 Service serviceAnnotation = clazzT.getAnnotation(Service.class);
                 if (serviceAnnotation!=null && !serviceAnnotation.value().equals("")) {
-                    bind(interfaceClazz)
+                    binder.bind(interfaceClazz)
                             .annotatedWith(Names.named(serviceAnnotation.value()))
                             .to(clazzT)
                             .in(Scopes.SINGLETON);
                 }
                 else {
-                    bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                    binder.bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
                 }
             }
         });

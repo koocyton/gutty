@@ -1,5 +1,6 @@
 package com.doopp.gutty.demo;
 
+import com.doopp.gutty.demo.filter.ApiFilter;
 import com.doopp.gutty.framework.Gutty;
 import com.doopp.gutty.framework.json.JacksonMessageConverter;
 import com.doopp.gutty.framework.view.FreemarkerViewResolver;
@@ -20,7 +21,7 @@ public class MVCApplication {
                 .setBasePackages(MVCApplication.class.getPackage().getName())
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
-                .addFilters(null, null)
+                .addFilter(ApiFilter.class)
                 .start();
     }
 }
