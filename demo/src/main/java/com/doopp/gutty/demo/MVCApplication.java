@@ -14,6 +14,7 @@ import com.google.inject.name.Named;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
 import org.mybatis.guice.datasource.helper.JdbcHelper;
+import org.mybatis.guice.datasource.hikaricp.HikariCPProvider;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class MVCApplication {
@@ -33,6 +34,7 @@ public class MVCApplication {
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
                 .addFilter(ApiFilter.class)
+                // .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
                 .addMyBatisModule(HikariDataSourceProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
                 .addModules(new RedisModule() {
                     @Singleton

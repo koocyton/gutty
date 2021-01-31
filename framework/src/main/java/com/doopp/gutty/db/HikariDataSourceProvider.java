@@ -1,13 +1,14 @@
 package com.doopp.gutty.db;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.zaxxer.hikari.HikariDataSource;
 
+import javax.inject.Provider;
 import javax.sql.DataSource;
 
-public class HikariDataSourceProvider implements Provider<DataSource> {
+// public final class HikariCPProvider implements Provider<DataSource> {
+public final class HikariDataSourceProvider implements Provider<DataSource> {
 
     private HikariDataSource dataSource = new HikariDataSource();
 
