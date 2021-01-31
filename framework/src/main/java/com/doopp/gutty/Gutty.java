@@ -275,4 +275,23 @@ public class Gutty {
                 ? Paths.get(resourceURL.getPath().substring(1))
                 : Paths.get(resourceURL.getPath());
     }
+
+    public static <T> T getInstance(Injector injector, Class<T> clazz) {
+        try {
+            return injector.getInstance(clazz);
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static <T> boolean hasInstance(Injector injector, Class<T> clazz) {
+        try {
+            injector.getInstance(clazz);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
 }

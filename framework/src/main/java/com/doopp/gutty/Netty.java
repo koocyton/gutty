@@ -1,6 +1,8 @@
 package com.doopp.gutty;
 
 import com.doopp.gutty.filter.Filter;
+import com.doopp.gutty.filter.FilterChain;
+import com.doopp.gutty.filter.FilterHandler;
 import com.doopp.gutty.netty.Http1RequestHandler;
 import com.doopp.gutty.netty.StaticFileRequestHandler;
 import com.doopp.gutty.netty.WebSocketServerHandler;
@@ -14,6 +16,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,32 +84,24 @@ class Netty {
                 //    ch.pipeline().addLast(new SslHandler(sslEngine));
                 // }
                 // HttpServerCodec：将请求和应答消息解码为HTTP消息
-                pipeline.addLast(new HttpServerCodec());
+                ch.pipeline().addLast(new HttpServerCodec());
                 // HttpObjectAggregator：将HTTP消息的多个部分合成一条完整的HTTP消息
-                pipeline.addLast(new HttpObjectAggregator(65536));
+                ch.pipeline().addLast(new HttpObjectAggregator(65536));
                 // that adds support for writing a large data stream
-                pipeline.addLast(new ChunkedWriteHandler());
+                ch.pipeline().addLast(new ChunkedWriteHandler());
                 // filter
-                pipeline.addLast(new SimpleChannelInboundHandler<Object>() {
-                    @Override
-                    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-                        Filter filter = injector.getInstance(Filter.class);
-                        if (msg instanceof FullHttpRequest) {
-                            filter.doFilter(ctx, (FullHttpRequest) msg);
-                            ctx.fireChannelRead(((FullHttpRequest) msg).retain());
-                        }
-                    }
-                });
+                ch.pipeline().addLast(new FilterHandler(injector));
                 // websocket
                 // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
-                pipeline.addLast(new WebSocketServerHandler(injector));
+                ch.pipeline().addLast(new WebSocketServerHandler(injector));
                 // static request
-                pipeline.addLast(new StaticFileRequestHandler());
+                ch.pipeline().addLast(new StaticFileRequestHandler());
                 // http request
-                pipeline.addLast(new Http1RequestHandler(injector));
+                ch.pipeline().addLast(new Http1RequestHandler(injector));
             }
         };
     }
+
 
     private String launchScreen(String text) {
         return  "\n\n" +
