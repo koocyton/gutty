@@ -34,20 +34,9 @@ public class MVCApplication {
                 .setViewResolver(FreemarkerViewResolver.class)
                 .addFilter(ApiFilter.class)
                 .addMyBatisModule(HikariDataSourceProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
-                .addModules(new MyBatisModule() {
-                    @Override
-                    protected void initialize() {
-                        install(JdbcHelper.MySQL);
-                        bindDataSourceProviderType(HikariDataSourceProvider.class);
-                        bindTransactionFactoryType(JdbcTransactionFactory.class);
-                        addMapperClasses("com.doopp.gutty.demo.dao");
-                        addInterceptorClass(PageInterceptor.class);
-                    }
-                 })
                 .addModules(new RedisModule() {
                     @Singleton
                     @Provides
-                    @Named("userRedis")
                     public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.user.servers") String userServers) {
                         return new ShardedJedisHelper(userServers, jedisPoolConfig);
                     }

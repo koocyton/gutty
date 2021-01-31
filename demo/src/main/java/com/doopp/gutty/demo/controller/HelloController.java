@@ -5,6 +5,7 @@ import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.FileParam;
+import com.doopp.gutty.redis.ShardedJedisHelper;
 import com.doopp.gutty.view.ModelMap;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -25,6 +26,25 @@ public class HelloController {
 
     @Inject
     private UserDao userDao;
+
+    @Inject
+    private ShardedJedisHelper userRedis;
+
+    @GET
+    @Path("/redis/read")
+    @Produces("application/json")
+    public String readRedis() {
+        return userRedis.get("hello");
+    }
+
+    @GET
+    @Path("/redis/write")
+    @Produces("application/json")
+    public String writeRedis() {
+        Long setValue = System.currentTimeMillis();
+        userRedis.set("hello", String.valueOf(setValue));
+        return String.valueOf(setValue);
+    }
 
     @GET
     @Path("/template")
