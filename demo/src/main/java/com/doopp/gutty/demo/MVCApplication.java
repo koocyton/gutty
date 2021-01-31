@@ -34,8 +34,7 @@ public class MVCApplication {
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
                 .addFilter(ApiFilter.class)
-                // .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
-                .addMyBatisModule(HikariDataSourceProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
+                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
                 .addModules(new RedisModule() {
                     @Singleton
                     @Provides

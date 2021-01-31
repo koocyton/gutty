@@ -8,9 +8,12 @@ import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.*;
 import com.google.inject.name.Names;
+import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
+import org.mybatis.guice.XMLMyBatisModule;
 import org.mybatis.guice.datasource.helper.JdbcHelper;
 
 import javax.inject.Provider;
@@ -68,7 +71,6 @@ public class Gutty {
         modules.add(new MyBatisModule() {
             @Override
             protected void initialize() {
-                install(JdbcHelper.MySQL);
                 bindDataSourceProviderType(dataSourceProviderClazz);
                 bindTransactionFactoryType(JdbcTransactionFactory.class);
                 addMapperClasses(daoPackageName);
