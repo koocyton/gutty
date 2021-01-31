@@ -1,5 +1,6 @@
 package com.doopp.gutty.demo.controller;
 
+import com.doopp.gutty.demo.dao.UserDao;
 import com.doopp.gutty.demo.pojo.User;
 import com.doopp.gutty.demo.service.HelloService;
 import com.doopp.gutty.annotation.Controller;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import java.io.File;
+import java.util.List;
 
 @Path("/api")
 @Controller
@@ -20,6 +22,9 @@ public class HelloController {
 
     @Inject
     private HelloService helloService;
+
+    @Inject
+    private UserDao userDao;
 
     @GET
     @Path("/template")
@@ -33,6 +38,13 @@ public class HelloController {
     @Produces("application/json")
     public String hello(@CookieParam("user") String user) {
         return helloService.hello();
+    }
+
+    @GET
+    @Path("/users")
+    @Produces("application/json")
+    public List<User> users() {
+        return userDao.selectAll();
     }
 
     @GET

@@ -20,7 +20,7 @@ subprojects {
 		jacksonVersion = '2.11.0'
 		lombokVersion = '1.18.12'
 		jedisVersion = '2.9.0'
-		slf4jVersion = '1.7.30'
+		slf4jVersion = '1.8.0-beta4'
 		junitVersion = '4.13'
 		nettyVersion = '4.1.56.Final'
 		guiceVersion = '4.2.3'
@@ -76,13 +76,15 @@ project(':framework') {
 		compile "org.freemarker:freemarker:${freemarkerVersion}"
 
 		// mysql
-		// compile 'com.zaxxer:HikariCP:3.4.5'
-		// compile 'org.mybatis:mybatis:3.5.6'
-		// compile 'org.mybatis:mybatis-guice:3.12'
-		// compile 'mysql:mysql-connector-java:8.0.22'
+		compile 'com.zaxxer:HikariCP:3.4.5'
+		compile 'org.mybatis:mybatis:3.5.6'
+		compile 'org.mybatis:mybatis-guice:3.12'
+		compile 'mysql:mysql-connector-java:8.0.22'
+		compile 'com.github.pagehelper:pagehelper:5.1.11'
 
 		// redis
-		// compile "redis.clients:jedis:${jedisVersion}"
+		compile "redis.clients:jedis:${jedisVersion}"
+		compile 'com.esotericsoftware:kryo:5.0.0'
 
 		// slf4j
 		compile "org.slf4j:slf4j-api:${slf4jVersion}"

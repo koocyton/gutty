@@ -3,12 +3,18 @@ package com.doopp.gutty;
 import com.doopp.gutty.annotation.websocket.Socket;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.Service;
+import com.github.pagehelper.PageInterceptor;
 import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.*;
 import com.google.inject.name.Names;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
+import org.mybatis.guice.MyBatisModule;
+import org.mybatis.guice.datasource.helper.JdbcHelper;
 
+import javax.sql.DataSource;
 import javax.ws.rs.*;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,6 +61,20 @@ public class Gutty {
     // 添加 module 的接口
     public Gutty addModules(Module... modules) {
         Collections.addAll(this.modules, modules);
+        return this;
+    }
+
+    public Gutty addMyBatisModule(Class<? extends Provider<DataSource>> dataSourceProviderClazz, String daoPackageName, Class<? extends Interceptor> interceptorsClass) {
+        modules.add(new MyBatisModule() {
+            @Override
+            protected void initialize() {
+                install(JdbcHelper.MySQL);
+                bindDataSourceProviderType(dataSourceProviderClazz);
+                bindTransactionFactoryType(JdbcTransactionFactory.class);
+                addMapperClasses(daoPackageName);
+                addInterceptorClass(interceptorsClass);
+            }
+        });
         return this;
     }
 

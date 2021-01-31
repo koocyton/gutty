@@ -38,6 +38,7 @@ public class ApiFilter implements Filter {
                 "/js",
                 "/chat",
                 "/ws",
+                "/api",
         };
 
         // 请求的uri
