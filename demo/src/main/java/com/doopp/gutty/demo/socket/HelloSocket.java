@@ -27,7 +27,7 @@ public class HelloSocket {
 
     @TextMessage
     public void onJsonMessage(@JsonFrame User user) {
-        logger.info("user {}", user.getName());
+        logger.info("user {}", user.getNickName());
     }
 
     @BinaryMessage

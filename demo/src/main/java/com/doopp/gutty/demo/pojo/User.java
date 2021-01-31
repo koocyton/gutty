@@ -1,14 +1,48 @@
 package com.doopp.gutty.demo.pojo;
 
-public class User {
+import java.io.Serializable;
 
-    private String name;
+public class User implements Serializable {
 
-    public void setName(String name) {
-        this.name = name;
+    private static final long serialVersionUID = 5163L;
+
+    private Long id;
+
+    private String nickName;
+
+    private String account;
+
+    private String password;
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Long getId() {
+        return id;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

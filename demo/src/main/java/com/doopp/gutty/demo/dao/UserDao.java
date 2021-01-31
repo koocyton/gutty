@@ -12,11 +12,11 @@ public interface UserDao {
 
     @Select({
             "<script>",
-            "SELECT * FROM `user`",
+            "SELECT * FROM `auth_user`",
             "</script>"
     })
     List<User> selectAll();
 
-    @Select("SELECT * FROM `user` WHERE `id`=#{id}")
+    @Select("SELECT * FROM `auth_user` WHERE `id`=#{id}")
     User selectById(@Param("id") Long id);
 }

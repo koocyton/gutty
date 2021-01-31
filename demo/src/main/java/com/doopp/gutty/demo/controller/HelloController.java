@@ -61,7 +61,7 @@ public class HelloController {
     public User hello2(@FormParam("liu") String liu) {
         logger.info("liu {}", liu);
         User user = new User();
-        user.setName(liu);
+        user.setNickName(liu);
         return user;
     }
 
