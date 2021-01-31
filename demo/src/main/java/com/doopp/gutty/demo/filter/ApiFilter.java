@@ -36,6 +36,8 @@ public class ApiFilter implements Filter {
                 "/css",
                 "/img",
                 "/js",
+                "/chat",
+                "/ws",
         };
 
         // 请求的uri
