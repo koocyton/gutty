@@ -1,3 +1,4 @@
 rootProject.name = "Gutty"
-include "framework"
-include "demo"
+include "oauth-server"
+include "oauth-web"
+include "gutty"

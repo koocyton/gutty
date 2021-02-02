@@ -53,7 +53,7 @@ subprojects {
 	}
 }
 
-project(':framework') {
+project(':gutty') {
 
 	dependencies {
 
@@ -95,11 +95,11 @@ project(':framework') {
 	}
 }
 
-project(':demo') {
+project(':oauth-server') {
 
 	dependencies {
 
-		compile project(':framework')
+		compile project(':gutty')
 		// junit
 		testCompile "junit:junit:${junitVersion}"
 	}
