@@ -42,9 +42,21 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] support filter
 ```
 
+#### import to project
+```
+<dependency>
+    <groupId>com.doopp</groupId>
+    <artifactId>gutty</artifactId>
+    <version>0.14.2</version>
+</dependency>
+```
+```
+compile 'com.doopp:gutty:0.14.2'
+```
+
 #### Example
 ```java
-// 驱动 Gutty
+// launch Gutty
 public static void main(String[] args) {
     new Gutty().loadProperties(args)
             .basePackages(MVCApplication.class.getPackage().getName())

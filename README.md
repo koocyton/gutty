@@ -48,6 +48,19 @@
 * [√] filter 支持
 ```
 
+#### 引入
+```
+<dependency>
+    <groupId>com.doopp</groupId>
+    <artifactId>gutty</artifactId>
+    <version>0.14.2</version>
+</dependency>
+```
+
+```
+compile 'com.doopp:gutty:0.14.2'
+```
+
 #### 示例
 ```java
 // 驱动 Gutty
