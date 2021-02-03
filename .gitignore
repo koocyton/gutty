@@ -12,6 +12,7 @@ gradle
 */upload/*
 # netbeans project files
 nbproject
+/target
 
 # zend studio for eclipse project files
 .buildpath

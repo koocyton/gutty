@@ -1,4 +1,4 @@
-package com.doopp.gutty.demo.service;
+package com.doopp.gutty.test.service;
 
 public interface HelloService {
 

@@ -1,6 +1,6 @@
-package com.doopp.gutty.demo.service.impl;
+package com.doopp.gutty.test.service.impl;
 
-import com.doopp.gutty.demo.service.HelloService;
+import com.doopp.gutty.test.service.HelloService;
 import com.doopp.gutty.annotation.Service;
 
 @Service

@@ -1,7 +1,7 @@
-package com.doopp.gutty.demo.socket;
+package com.doopp.gutty.test.socket;
 
 import com.doopp.gutty.annotation.websocket.*;
-import com.doopp.gutty.demo.pojo.User;
+import com.doopp.gutty.test.pojo.User;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.slf4j.Logger;

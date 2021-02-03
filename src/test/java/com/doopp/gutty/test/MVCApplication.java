@@ -1,7 +1,7 @@
-package com.doopp.gutty.demo;
+package com.doopp.gutty.test;
 
 import com.doopp.gutty.db.HikariDataSourceProvider;
-import com.doopp.gutty.demo.filter.ApiFilter;
+import com.doopp.gutty.test.filter.ApiFilter;
 import com.doopp.gutty.Gutty;
 import com.doopp.gutty.json.JacksonMessageConverter;
 import com.doopp.gutty.redis.RedisModule;
@@ -34,7 +34,7 @@ public class MVCApplication {
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
                 .addFilter(ApiFilter.class)
-                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.demo.dao", PageInterceptor.class)
+                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
                 .addModules(new RedisModule() {
                     @Singleton
                     @Provides

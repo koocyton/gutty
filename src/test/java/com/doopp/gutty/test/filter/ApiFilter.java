@@ -1,4 +1,4 @@
-package com.doopp.gutty.demo.filter;
+package com.doopp.gutty.test.filter;
 
 import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.filter.FilterChain;

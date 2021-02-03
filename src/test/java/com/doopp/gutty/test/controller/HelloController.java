@@ -1,8 +1,8 @@
-package com.doopp.gutty.demo.controller;
+package com.doopp.gutty.test.controller;
 
-import com.doopp.gutty.demo.dao.UserDao;
-import com.doopp.gutty.demo.pojo.User;
-import com.doopp.gutty.demo.service.HelloService;
+import com.doopp.gutty.test.dao.UserDao;
+import com.doopp.gutty.test.pojo.User;
+import com.doopp.gutty.test.service.HelloService;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.FileParam;
 import com.doopp.gutty.redis.ShardedJedisHelper;

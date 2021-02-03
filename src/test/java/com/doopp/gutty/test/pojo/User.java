@@ -1,4 +1,4 @@
-package com.doopp.gutty.demo.pojo;
+package com.doopp.gutty.test.pojo;
 
 import java.io.Serializable;
 
