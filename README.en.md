@@ -29,7 +29,7 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] file upload , support @FileParam
 * [√] Support Freemarker and Thymeleaf
 * [ ] Session  RequestAttribute
-* [ ] support filter
+* [√] support filter
 
  Websocket
 
@@ -39,7 +39,7 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] Support WebsocketFrame to revcive params
 * [√] protobuf , json 的自动编码，解码到变量
 * [ ] ... more
-* [ ] support filter
+* [√] support filter
 ```
 
 #### Example

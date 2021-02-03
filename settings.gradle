@@ -1,4 +1,0 @@
-rootProject.name = "Gutty"
-include "oauth-server"
-include "oauth-web"
-include "gutty"
