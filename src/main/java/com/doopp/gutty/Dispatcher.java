@@ -73,7 +73,8 @@ public class Dispatcher {
             throw new RuntimeException("Oho ... Not found route target");
         }
         // get controller
-        Object controller = injector.getInstance(httpRoute.getClazz());
+        // Object controller = injector.getInstance(httpRoute.getClazz());
+        Object controller = Gutty.getInstance(injector, httpRoute.getClazz());
         if (controller==null) {
             throw new RuntimeException("Oho ... Not found controller : " + httpRoute.getClazz());
         }
@@ -93,13 +94,15 @@ public class Dispatcher {
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
         if (contentType.contains(MediaType.APPLICATION_JSON)) {
-            MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+            // MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+            MessageConverter messageConverter = Gutty.getInstance(injector, MessageConverter.class);
             if (messageConverter !=null) {
                 result = messageConverter.toJson(result);
             }
         }
         else if (result instanceof String && contentType.contains(MediaType.TEXT_HTML)) {
-            ViewResolver viewResolver = injector.getInstance(ViewResolver.class);
+            // ViewResolver viewResolver = injector.getInstance(ViewResolver.class);
+            ViewResolver viewResolver = Gutty.getInstance(injector, ViewResolver.class);
             if (viewResolver != null) {
                 result = viewResolver.template(modelMap, (String) result);
             }

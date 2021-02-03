@@ -231,7 +231,8 @@ public class HttpParam {
     }
 
     private <T> T jsonParamCase(ByteBuf content, Class<T> parameterClazz) {
-        MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+        // MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
+        MessageConverter messageConverter = Gutty.getInstance(injector, MessageConverter.class);
         if (messageConverter == null) {
             return null;
         }
