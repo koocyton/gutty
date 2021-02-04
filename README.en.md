@@ -47,11 +47,11 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.2</version>
+    <version>0.14.3</version>
 </dependency>
 ```
 ```
-compile 'com.doopp:gutty:0.14.2'
+compile 'com.doopp:gutty:0.14.3'
 ```
 
 #### Example
@@ -59,10 +59,19 @@ compile 'com.doopp:gutty:0.14.2'
 // launch Gutty
 public static void main(String[] args) {
     new Gutty().loadProperties(args)
-            .basePackages(MVCApplication.class.getPackage().getName())
-            .messageConverter(JacksonMessageConverter.class)
-            .viewResolver(FreemarkerViewResolver.class)
-            .start();
+                .setBasePackages("com.doopp.gutty.test")
+                .setMessageConverter(JacksonMessageConverter.class)
+                .setViewResolver(FreemarkerViewResolver.class)
+                .addFilter("/api", ApiFilter.class)
+                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
+                .addModules(new RedisModule() {
+                    @Singleton
+                    @Provides
+                    public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.user.servers") String userServers) {
+                        return new ShardedJedisHelper(userServers, jedisPoolConfig);
+                    }
+                 })
+                .start();
 }
 ```
 
@@ -78,25 +87,74 @@ public class HelloController {
     private HelloService helloService;
 
     @GET
+    @Path("/redis/read")
+    @Produces("application/json")
+    public String readRedis() {
+        return userRedis.get("hello");
+    }
+
+    @GET
+    @Path("/redis/write")
+    @Produces("application/json")
+    public String writeRedis() {
+        Long setValue = System.currentTimeMillis();
+        userRedis.set("hello", String.valueOf(setValue));
+        return String.valueOf(setValue);
+    }
+
+    @GET
     @Path("/template")
-    public String template() {
+    public String template(ModelMap modelMap) {
+        modelMap.addAttribute("hello", "hello freemarker !");
         return "hello.template";
     }
 
     @GET
+    @Path("/hello")
+    @Produces("application/json")
+    public String hello(@CookieParam("user") String user) {
+        return helloService.hello();
+    }
+
+    @GET
+    @Path("/users")
+    @Produces("application/json")
+    public List<User> users() {
+        return userDao.selectAll();
+    }
+
+    @GET
     @Path("/hello/{id}/{name}")
-    public String hello(@PathParam("id") Integer id, @PathParam("name") String name) {
+    public String hello3(@PathParam("id") Integer id, @PathParam("name") String name) {
         logger.info("id {}", id);
         logger.info("name {}", name);
         return helloService.hello();
     }
 
     @POST
-    @Path("/user")
+    @Path("/hello")
+    @Produces("application/json")
+    public User hello2(@FormParam("liu") String liu) {
+        logger.info("liu {}", liu);
+        User user = new User();
+        user.setNickName(liu);
+        return user;
+    }
+
+    @POST
+    @Path("/json")
     @Produces("application/json")
     public User hello2(User user) {
         logger.info("user {}", user);
         return user;
+    }
+
+    @POST
+    @Path("/upload")
+    @Produces("application/json")
+    public String upload(@FileParam(value = "file", path = "d:/tmp") File uploadFile) {
+        logger.info("file {}", uploadFile);
+        return "hello";
     }
 }
 ```
