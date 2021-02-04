@@ -53,12 +53,12 @@
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.3</version>
+    <version>0.14.4</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.3'
+compile 'com.doopp:gutty:0.14.4'
 ```
 
 #### 示例
@@ -78,6 +78,10 @@ public static void main(String[] args) {
                         return new ShardedJedisHelper(userServers, jedisPoolConfig);
                     }
                  })
+                .addInjectorConsumer(injector->{
+                    ScheduledExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(8);
+                    newScheduledThreadPool.scheduleWithFixedDelay(injector.getInstance(AgarTask.class), 1000, 16, TimeUnit.MILLISECONDS);
+                })
                 .start();
 }
 ```
