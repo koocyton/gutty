@@ -1,7 +1,6 @@
 package com.doopp.gutty;
 
 import com.doopp.gutty.filter.Filter;
-import com.doopp.gutty.filter.FilterChain;
 import com.doopp.gutty.filter.FilterHandler;
 import com.doopp.gutty.netty.Http1RequestHandler;
 import com.doopp.gutty.netty.StaticFileRequestHandler;
@@ -13,13 +12,14 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 class Netty {
 
@@ -39,6 +39,13 @@ class Netty {
     @Inject
     @Named("gutty.httpsPort")
     private Integer httpsPort;
+
+    private Map<String, Class<? extends Filter>> uriFilters;
+
+    // 模板 处理类
+    public void setFilters(Map<String, Class<? extends Filter>> uriFilters) {
+        this.uriFilters = uriFilters;
+    }
 
     public void run() {
         // boss event
@@ -90,7 +97,7 @@ class Netty {
                 // that adds support for writing a large data stream
                 ch.pipeline().addLast(new ChunkedWriteHandler());
                 // filter
-                ch.pipeline().addLast(new FilterHandler(injector));
+                ch.pipeline().addLast(new FilterHandler(injector, uriFilters));
                 // websocket
                 // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
                 ch.pipeline().addLast(new WebSocketServerHandler(injector));

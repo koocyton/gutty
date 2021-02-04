@@ -13,6 +13,7 @@ gradle
 # netbeans project files
 nbproject
 /target
+/test.properties
 
 # zend studio for eclipse project files
 .buildpath

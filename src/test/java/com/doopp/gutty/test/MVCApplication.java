@@ -1,6 +1,5 @@
 package com.doopp.gutty.test;
 
-import com.doopp.gutty.db.HikariDataSourceProvider;
 import com.doopp.gutty.test.filter.ApiFilter;
 import com.doopp.gutty.Gutty;
 import com.doopp.gutty.json.JacksonMessageConverter;
@@ -11,9 +10,6 @@ import com.github.pagehelper.PageInterceptor;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.mybatis.guice.MyBatisModule;
-import org.mybatis.guice.datasource.helper.JdbcHelper;
 import org.mybatis.guice.datasource.hikaricp.HikariCPProvider;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -30,10 +26,11 @@ public class MVCApplication {
                 //        return new NioEventLoopGroup();
                 //    }
                 // })
-                .setBasePackages(MVCApplication.class.getPackage().getName())
+                .setBasePackages("com.doopp.gutty.test")
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
-                .addFilter(ApiFilter.class)
+                .addFilter("/api", ApiFilter.class)
+                // .addFilter("/admin/api", ApiFilter.class)
                 .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
                 .addModules(new RedisModule() {
                     @Singleton

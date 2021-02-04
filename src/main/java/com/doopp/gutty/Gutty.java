@@ -12,8 +12,12 @@ import com.google.inject.name.Names;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 import javax.sql.DataSource;
 import javax.ws.rs.*;
 import java.io.FileInputStream;
@@ -28,11 +32,15 @@ import java.util.*;
 
 public class Gutty {
 
+    private final static Logger logger = LoggerFactory.getLogger(Gutty.class);
+
     private final List<Module> modules = new ArrayList<>();
 
     private final List<String> basePackages = new ArrayList<>();
 
     private final Map<Class<?>, Class<?>> modulesBindClassMap = new HashMap<>();
+
+    private final Map<String, Class<? extends Filter>> uriFilters = new HashMap<>();
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -100,10 +108,11 @@ public class Gutty {
     }
 
     // 模板 处理类
-    public Gutty addFilter(Class<? extends Filter> clazz) {
-        if (clazz!=null) {
-            modulesBindClassMap.put(Filter.class, clazz);
-        }
+    public Gutty addFilter(String startUri, Class<? extends Filter> clazz) {
+        uriFilters.put(startUri, clazz);
+        // if (clazz!=null) {
+        //    modulesBindClassMap.put(Filter.class, clazz);
+        // }
         return this;
     }
 
@@ -137,6 +146,7 @@ public class Gutty {
     // 启动 netty
     private void startNetty(Injector injector) {
         Netty netty = injector.getInstance(Netty.class);
+        netty.setFilters(uriFilters);
         netty.run();
     }
 

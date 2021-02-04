@@ -29,6 +29,7 @@ public class ApiFilter implements Filter {
     @Override
     public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FilterChain filterChain) {
 
+        System.out.println(httpRequest.uri());
         // 不过滤的uri
         String[] notFilterUris = new String[]{
                 "/index.html",
