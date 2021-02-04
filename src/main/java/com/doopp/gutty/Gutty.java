@@ -12,12 +12,8 @@ import com.google.inject.name.Names;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
 import javax.inject.Provider;
-import javax.inject.Singleton;
 import javax.sql.DataSource;
 import javax.ws.rs.*;
 import java.io.FileInputStream;
@@ -31,8 +27,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 public class Gutty {
-
-    private final static Logger logger = LoggerFactory.getLogger(Gutty.class);
 
     private final List<Module> modules = new ArrayList<>();
 
@@ -110,9 +104,6 @@ public class Gutty {
     // 模板 处理类
     public Gutty addFilter(String startUri, Class<? extends Filter> clazz) {
         uriFilters.put(startUri, clazz);
-        // if (clazz!=null) {
-        //    modulesBindClassMap.put(Filter.class, clazz);
-        // }
         return this;
     }
 
