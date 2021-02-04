@@ -25,6 +25,7 @@ import java.nio.file.*;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class Gutty {
 
@@ -134,10 +135,25 @@ public class Gutty {
         startNetty(Guice.createInjector(modules));
     }
 
+    private final List<Consumer<Injector>> injectorConsumerList = new ArrayList<>();
+
+    // 创建 injector 后执行
+    public Gutty addInjectorConsumer(Consumer<Injector> injectorConsumer) {
+        injectorConsumerList.add(injectorConsumer);
+        return this;
+    }
+
     // 启动 netty
     private void startNetty(Injector injector) {
+        // 启动 netty
         Netty netty = injector.getInstance(Netty.class);
+        // set filters
         netty.setFilters(uriFilters);
+        // 创建 injector 后执行
+        if (injectorConsumerList.size()>0) {
+            injectorConsumerList.forEach(injectorConsumer -> injectorConsumer.accept(injector));
+        }
+        // run netty
         netty.run();
     }
 
