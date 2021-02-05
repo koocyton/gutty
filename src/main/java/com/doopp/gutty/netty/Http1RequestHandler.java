@@ -1,6 +1,7 @@
 package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
+import com.doopp.gutty.NotFoundException;
 import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -36,9 +37,13 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
             // execute route
             result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
         }
+        catch (NotFoundException ne) {
+            ctx.fireChannelRead(httpRequest.retain());
+            return;
+        }
         catch (Exception e) {
             e.printStackTrace();
-            sendError(ctx, HttpResponseStatus.NOT_FOUND);
+            sendError(ctx, e.getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
             return;
         }
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
@@ -56,12 +61,11 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         }
     }
 
-    private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-        FullHttpResponse response = new DefaultFullHttpResponse(
-                HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status + "\r\n", CharsetUtil.UTF_8));
+    static void sendError(ChannelHandlerContext ctx, String message,  HttpResponseStatus status) {
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status);
+        response.content().writeBytes(Unpooled.copiedBuffer(message.getBytes(CharsetUtil.UTF_8)));
+        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-
-        // Close the connection as soon as the error message is sent.
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 }

@@ -3,10 +3,14 @@ package com.doopp.gutty.netty;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
+
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
@@ -22,7 +26,8 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         // 获取静态文件
         InputStream ins = getClass().getResourceAsStream("/public" + requestUri);
         if (ins==null) {
-            ctx.fireChannelRead(httpRequest.retain());
+            // ctx.fireChannelRead(httpRequest.retain());
+            Http1RequestHandler.sendError(ctx, "", HttpResponseStatus.NOT_FOUND);
             return;
         }
         // 读取文件

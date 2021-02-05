@@ -101,10 +101,10 @@ class Netty {
                 // websocket
                 // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
                 ch.pipeline().addLast(new WebSocketServerHandler(injector));
-                // static request
-                ch.pipeline().addLast(new StaticFileRequestHandler());
                 // http request
                 ch.pipeline().addLast(new Http1RequestHandler(injector));
+                // static request
+                ch.pipeline().addLast(new StaticFileRequestHandler());
             }
         };
     }

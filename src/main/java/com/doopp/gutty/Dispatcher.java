@@ -70,38 +70,36 @@ public class Dispatcher {
         // get route
         HttpRoute httpRoute = this.getHttpRoute(httpRequest.method(), httpRequest.uri());
         if (httpRoute ==null) {
-            throw new RuntimeException("Oho ... Not found route target");
+            throw new NotFoundException("Oho ... Not found route target");
         }
         // get controller
-        // Object controller = injector.getInstance(httpRoute.getClazz());
         Object controller = Gutty.getInstance(injector, httpRoute.getClazz());
         if (controller==null) {
-            throw new RuntimeException("Oho ... Not found controller : " + httpRoute.getClazz());
+            throw new NotFoundException("Oho ... Not found controller : " + httpRoute.getClazz());
         }
         // ModelMap
         ModelMap modelMap = new ModelMap();
         // method invoke
         Object result;
         try {
-            result = (httpRoute.getParameters().length==0)
+            result = (httpRoute.getParameters().length == 0)
                     ? httpRoute.getMethod().invoke(controller)
                     : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         }
-        catch(Exception e) {
-            e.printStackTrace();
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
+        // 如果要求返回 JSON
         if (contentType.contains(MediaType.APPLICATION_JSON)) {
-            // MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
             MessageConverter messageConverter = Gutty.getInstance(injector, MessageConverter.class);
             if (messageConverter !=null) {
                 result = messageConverter.toJson(result);
             }
         }
+        // 如果要求返回字符串，并且有适配的模板
         else if (result instanceof String && contentType.contains(MediaType.TEXT_HTML)) {
-            // ViewResolver viewResolver = injector.getInstance(ViewResolver.class);
             ViewResolver viewResolver = Gutty.getInstance(injector, ViewResolver.class);
             if (viewResolver != null) {
                 result = viewResolver.template(modelMap, (String) result);
