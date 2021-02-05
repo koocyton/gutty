@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -85,6 +86,9 @@ public class Dispatcher {
             result = (httpRoute.getParameters().length == 0)
                     ? httpRoute.getMethod().invoke(controller)
                     : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+        }
+        catch (RuntimeException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new RuntimeException(e);

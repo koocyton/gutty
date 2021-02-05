@@ -10,6 +10,8 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -39,6 +41,11 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         }
         catch (NotFoundException ne) {
             ctx.fireChannelRead(httpRequest.retain());
+            return;
+        }
+        catch (RuntimeException e) {
+            e.getCause().printStackTrace();
+            sendError(ctx, e.getCause().getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
             return;
         }
         catch (Exception e) {
