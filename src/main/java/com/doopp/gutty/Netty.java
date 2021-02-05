@@ -99,7 +99,6 @@ class Netty {
                 // filter
                 ch.pipeline().addLast(new FilterHandler(injector, uriFilters));
                 // websocket
-                // pipeline.addLast(new WebSocketServerProtocolHandler("/ws", true));
                 ch.pipeline().addLast(new WebSocketServerHandler(injector));
                 // http request
                 ch.pipeline().addLast(new Http1RequestHandler(injector));

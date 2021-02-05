@@ -8,13 +8,10 @@ import com.google.inject.Injector;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -22,8 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Dispatcher {
-
-    private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     private final Map<String, HttpRoute> httpRouteMap = new HashMap<>();
     private final List<HttpRoute> patternHttpRouteList = new ArrayList<>();
@@ -67,7 +62,7 @@ public class Dispatcher {
         return builder.length() > 0 ? Pattern.quote(builder.toString()) : "";
     }
 
-    public byte[] executeHttpRoute(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    public byte[] executeHttpRoute(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws Exception {
         // get route
         HttpRoute httpRoute = this.getHttpRoute(httpRequest.method(), httpRequest.uri());
         if (httpRoute ==null) {
@@ -81,18 +76,9 @@ public class Dispatcher {
         // ModelMap
         ModelMap modelMap = new ModelMap();
         // method invoke
-        Object result;
-        try {
-            result = (httpRoute.getParameters().length == 0)
-                    ? httpRoute.getMethod().invoke(controller)
-                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Object result = (httpRoute.getParameters().length == 0)
+                ? httpRoute.getMethod().invoke(controller)
+                : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
         // 如果要求返回 JSON

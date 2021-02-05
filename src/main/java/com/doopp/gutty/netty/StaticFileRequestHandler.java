@@ -1,5 +1,6 @@
 package com.doopp.gutty.netty;
 
+import com.doopp.gutty.NotFoundException;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -27,7 +28,7 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         InputStream ins = getClass().getResourceAsStream("/public" + requestUri);
         if (ins==null) {
             // ctx.fireChannelRead(httpRequest.retain());
-            Http1RequestHandler.sendError(ctx, "", HttpResponseStatus.NOT_FOUND);
+            Http1RequestHandler.sendError(ctx, new NotFoundException(""), HttpResponseStatus.NOT_FOUND);
             return;
         }
         // 读取文件

@@ -59,11 +59,11 @@ compile 'com.doopp:gutty:0.14.6-SNAPSHOT'
 // launch Gutty
 public static void main(String[] args) {
     new Gutty().loadProperties(args)
-                .setBasePackages("com.doopp.gutty.test")
+                .setBasePackages("com.doopp.gutty.auth")
                 .setMessageConverter(JacksonMessageConverter.class)
                 .setViewResolver(FreemarkerViewResolver.class)
                 .addFilter("/api", ApiFilter.class)
-                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
+                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.auth.dao", PageInterceptor.class)
                 .addModules(new RedisModule() {
                     @Singleton
                     @Provides

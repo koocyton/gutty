@@ -39,18 +39,12 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
             // execute route
             result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
         }
-        catch (NotFoundException ne) {
+        catch (NotFoundException e) {
             ctx.fireChannelRead(httpRequest.retain());
             return;
         }
-        catch (RuntimeException e) {
-            e.getCause().printStackTrace();
-            sendError(ctx, e.getCause().getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            return;
-        }
         catch (Exception e) {
-            e.printStackTrace();
-            sendError(ctx, e.getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            sendError(ctx, e, HttpResponseStatus.INTERNAL_SERVER_ERROR);
             return;
         }
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
@@ -68,9 +62,10 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         }
     }
 
-    static void sendError(ChannelHandlerContext ctx, String message,  HttpResponseStatus status) {
+    static void sendError(ChannelHandlerContext ctx, Exception e, HttpResponseStatus status) {
+        e.printStackTrace();
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status);
-        response.content().writeBytes(Unpooled.copiedBuffer(message.getBytes(CharsetUtil.UTF_8)));
+        response.content().writeBytes(Unpooled.copiedBuffer("".getBytes(CharsetUtil.UTF_8)));
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
