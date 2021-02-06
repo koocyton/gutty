@@ -63,7 +63,9 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
     }
 
     static void sendError(ChannelHandlerContext ctx, Exception e, HttpResponseStatus status) {
-        e.printStackTrace();
+        if (!(e instanceof NotFoundException)) {
+            e.printStackTrace();
+        }
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, status);
         response.content().writeBytes(Unpooled.copiedBuffer("".getBytes(CharsetUtil.UTF_8)));
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
