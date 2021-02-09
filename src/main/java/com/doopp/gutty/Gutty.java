@@ -14,6 +14,7 @@ import com.google.inject.name.Names;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
+import org.mybatis.guice.datasource.helper.JdbcHelper;
 
 import javax.inject.Provider;
 import javax.sql.DataSource;
@@ -41,7 +42,7 @@ public class Gutty {
     private final Map<Class<?>, Class<?>> componentClassMap = new HashMap<>();
 
     // filer  uri=>filter map
-    private final Map<String, Class<? extends Filter>> uriFilters = new HashMap<>();
+    private final Map<String, Class<? extends Filter>> filterMap = new HashMap<>();
 
     // 载入配置
     public Gutty loadProperties(String... propertiesFiles) {
@@ -73,7 +74,7 @@ public class Gutty {
         return this;
     }
 
-    public Gutty addMyBatisModule(Class<? extends Provider<DataSource>> dataSourceProviderClazz, String daoPackageName, Class<? extends Interceptor> interceptorsClass) {
+    public Gutty setMyBatis(Class<? extends Provider<DataSource>> dataSourceProviderClazz, String daoPackageName, Class<? extends Interceptor> interceptorsClass) {
         modules.add(new MyBatisModule() {
             @Override
             protected void initialize() {
@@ -110,7 +111,7 @@ public class Gutty {
 
     // 模板 处理类
     public Gutty addFilter(String startUri, Class<? extends Filter> clazz) {
-        uriFilters.put(startUri, clazz);
+        filterMap.put(startUri, clazz);
         return this;
     }
 
@@ -228,7 +229,7 @@ public class Gutty {
             @Provides
             @Singleton
             public FilterHandler filterHandler() {
-                return new FilterHandler(uriFilters);
+                return new FilterHandler(filterMap);
             }
         });
     }

@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class FilterHandler {
 
