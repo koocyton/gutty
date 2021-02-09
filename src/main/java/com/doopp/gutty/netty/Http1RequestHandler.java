@@ -2,7 +2,8 @@ package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
 import com.doopp.gutty.NotFoundException;
-import com.google.inject.Injector;
+import com.doopp.gutty.filter.FilterHandler;
+import com.google.inject.*;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -10,7 +11,6 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -19,11 +19,11 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     private final static Logger logger = LoggerFactory.getLogger(Http1RequestHandler.class);
 
-    private final Injector injector;
+    @Inject
+    private Injector injector;
 
-    public Http1RequestHandler(Injector injector){
-        this.injector = injector;
-    }
+    @Inject
+    private FilterHandler filterHandler;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {

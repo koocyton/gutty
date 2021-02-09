@@ -1,6 +1,5 @@
 package com.doopp.gutty;
 
-import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.netty.Http1RequestHandler;
 import com.doopp.gutty.netty.StaticFileRequestHandler;
 import com.doopp.gutty.netty.WebSocketServerHandler;
@@ -14,15 +13,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 class Netty {
-
-    private static final Logger logger = LoggerFactory.getLogger(Netty.class);
 
     @Inject
     private Injector injector;
@@ -38,13 +30,6 @@ class Netty {
     @Inject
     @Named("gutty.httpsPort")
     private Integer httpsPort;
-
-    private Map<String, Class<? extends Filter>> uriFilters;
-
-    // 模板 处理类
-    public void setFilters(Map<String, Class<? extends Filter>> uriFilters) {
-        this.uriFilters = uriFilters;
-    }
 
     public void run() {
         // boss event
@@ -95,14 +80,12 @@ class Netty {
                 ch.pipeline().addLast(new HttpObjectAggregator(65536));
                 // that adds support for writing a large data stream
                 ch.pipeline().addLast(new ChunkedWriteHandler());
-                // filter
-                // ch.pipeline().addLast(new FilterHandler(injector, uriFilters));
                 // websocket
-                ch.pipeline().addLast(new WebSocketServerHandler(injector));
+                ch.pipeline().addLast(injector.getInstance(WebSocketServerHandler.class));
                 // http request
-                ch.pipeline().addLast(new Http1RequestHandler(injector));
+                ch.pipeline().addLast(injector.getInstance(Http1RequestHandler.class));
                 // static request
-                ch.pipeline().addLast(new StaticFileRequestHandler());
+                ch.pipeline().addLast(injector.getInstance(StaticFileRequestHandler.class));
             }
         };
     }

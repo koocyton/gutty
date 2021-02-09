@@ -2,6 +2,7 @@ package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
 import com.doopp.gutty.HttpParam;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -18,11 +19,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
-    private final Injector injector;
-
-    public WebSocketServerHandler(Injector injector) {
-        this.injector = injector;
-    }
+    @Inject
+    private Injector injector;
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {

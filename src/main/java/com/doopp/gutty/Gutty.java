@@ -9,6 +9,7 @@ import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.*;
 import com.google.inject.Module;
+import com.google.inject.binder.AnnotatedBindingBuilder;
 import com.google.inject.name.Names;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
@@ -30,12 +31,16 @@ import java.util.function.Consumer;
 
 public class Gutty {
 
+    // modules 的集合
     private final List<Module> modules = new ArrayList<>();
 
+    // 项目的包路径
     private final List<String> basePackages = new ArrayList<>();
 
-    private final Map<Class<?>, Class<?>> modulesBindClassMap = new HashMap<>();
+    // 组件类 map
+    private final Map<Class<?>, Class<?>> componentClassMap = new HashMap<>();
 
+    // filer  uri=>filter map
     private final Map<String, Class<? extends Filter>> uriFilters = new HashMap<>();
 
     // 载入配置
@@ -90,7 +95,7 @@ public class Gutty {
     // Json 处理类
     public Gutty setMessageConverter(Class<? extends MessageConverter> clazz) {
         if (clazz!=null) {
-            modulesBindClassMap.put(MessageConverter.class, clazz);
+            componentClassMap.put(MessageConverter.class, clazz);
         }
         return this;
     }
@@ -98,7 +103,7 @@ public class Gutty {
     // 模板 处理类
     public Gutty setViewResolver(Class<? extends ViewResolver> clazz) {
         if (clazz!=null) {
-            modulesBindClassMap.put(ViewResolver.class, clazz);
+            componentClassMap.put(ViewResolver.class, clazz);
         }
         return this;
     }
@@ -111,32 +116,12 @@ public class Gutty {
 
     // 启动服务
     public void start() {
-        modules.add(new Module() {
-            @Override
-            public void configure(Binder binder) {
-                modulesBindClassMap.forEach((c1, c2)->{
-                    bind(binder, c1, c2);
-                });
-            }
-            private <T> void bind(Binder binder, Class<T> interfaceClazz, Class<?> clazz) {
-                if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
-                    return;
-                }
-                Class<? extends T> clazzT = (Class<? extends T>) clazz;
-                binder.bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
-            }
-            @Provides
-            @Singleton
-            public FilterHandler filterHandler() {
-                return new FilterHandler(uriFilters);
-            }
-        });
         // 获取包下的所有类
-        List<Class<?>> classList = classList();
+        componentClassScan();
         // 将有注释的类添加到注入服务里
-        annotationClass2Injector(classList);
+        componentClassBind();
         // 将类加入到路由中
-        class2Route(classList);
+        controller2Route();
         // launch netty
         startNetty(Guice.createInjector(modules));
     }
@@ -153,8 +138,6 @@ public class Gutty {
     private void startNetty(Injector injector) {
         // 启动 netty
         Netty netty = injector.getInstance(Netty.class);
-        // set filters
-        netty.setFilters(uriFilters);
         // 创建 injector 后执行
         if (injectorConsumerList.size()>0) {
             injectorConsumerList.forEach(injectorConsumer -> injectorConsumer.accept(injector));
@@ -164,11 +147,11 @@ public class Gutty {
     }
 
     // 将 Controller 类加入到路由中
-    private void class2Route(List<Class<?>> classList) {
+    private void controller2Route() {
         // route map
         Dispatcher dispatcher = Dispatcher.getInstance();
         // loop
-        for(Class<?> clazz : classList) {
+        for(Class<?> clazz : componentClassMap.values()) {
             // 只分析 Controller
             if (clazz.isAnnotationPresent(Controller.class)) {
                 // controller path
@@ -217,49 +200,41 @@ public class Gutty {
         }
     }
 
-    // 扫描 @Service 和 @Controller  @Socket
-    // 将他们加入到 Module 里给 injector 调用
-    private void annotationClass2Injector(List<Class<?>> classList) {
+    // 将组件类 bind 到 Guice 框架
+    private void componentClassBind() {
         modules.add(new Module() {
             @Override
             public void configure(Binder binder) {
-                for(Class<?> clazz : classList) {
-                    if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
-                        if (clazz.getInterfaces().length>=1) {
-                            for (Class<?> anInterface : clazz.getInterfaces()) {
-                                bind(binder, anInterface, clazz);
-                            }
-                        }
-                        else {
-                            binder.bind(clazz).in(Scopes.SINGLETON);
-                        }
-                    }
+                for(Class<?> bindClass : componentClassMap.keySet()) {
+                    this.bind(binder, bindClass, componentClassMap.get(bindClass));
                 }
             }
-            // bind class to interface
-            private <T> void bind(Binder binder, Class<T> interfaceClazz, Class<?> clazz) {
-                if (!Arrays.asList(clazz.getInterfaces()).contains(interfaceClazz)) {
-                    return;
-                }
-                Class<? extends T> clazzT = (Class<? extends T>) clazz;
-                Service serviceAnnotation = clazzT.getAnnotation(Service.class);
+            // bind class
+            private <T> void bind(Binder binder, Class<T> bindClass, Class<?> toClass) {
+                // binder
+                AnnotatedBindingBuilder<T> bindBuilder = binder.bind(bindClass);
+                Service serviceAnnotation = toClass.getAnnotation(Service.class);
+                // 如果 service 有设定名称
                 if (serviceAnnotation!=null && !serviceAnnotation.value().equals("")) {
-                    binder.bind(interfaceClazz)
-                            .annotatedWith(Names.named(serviceAnnotation.value()))
-                            .to(clazzT)
-                            .in(Scopes.SINGLETON);
+                    bindBuilder.annotatedWith(Names.named(serviceAnnotation.value()));
                 }
-                else {
-                    binder.bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+                // 如果 bindClass 不等 toClass
+                if (!bindClass.equals(toClass)) {
+                    bindBuilder.to((Class<? extends T>) toClass);
                 }
+                // 单例
+                bindBuilder.in(Scopes.SINGLETON);
+            }
+            @Provides
+            @Singleton
+            public FilterHandler filterHandler() {
+                return new FilterHandler(uriFilters);
             }
         });
     }
 
     // 将 Package 里扫描类
-    private List<Class<?>> classList() {
-        // init className List
-        List<Class<?>> classList = new ArrayList<>();
+    private void componentClassScan() {
         // loop basePackages
         for(String basePackage : basePackages) {
             // package Path
@@ -269,17 +244,24 @@ public class Gutty {
                 Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        // logger.info("file >>> {}", file.toUri());
                         String classPath = file.toUri().toString().replace("/", ".");
-                        if (!classPath.endsWith("$1.class")) {
-                            String className = classPath.substring(classPath.lastIndexOf(basePackage), classPath.length()-6);
-                            // add class to class list
-                            try {
-                                classList.add(Class.forName(className));
+                        if (classPath.endsWith("$1.class")) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        String className = classPath.substring(classPath.lastIndexOf(basePackage), classPath.length()-6);
+                        try {
+                            Class<?> clazz = Class.forName(className);
+                            if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
+                                if (clazz.getInterfaces().length>=1) {
+                                    componentClassMap.put(clazz.getInterfaces()[0], clazz);
+                                }
+                                else {
+                                    componentClassMap.put(clazz, clazz);
+                                }
                             }
-                            catch (ClassNotFoundException e) {
-                                throw new RuntimeException(e);
-                            }
+                        }
+                        catch (ClassNotFoundException e) {
+                            e.printStackTrace();
                         }
                         return FileVisitResult.CONTINUE;
                     }
@@ -289,8 +271,6 @@ public class Gutty {
                 throw new RuntimeException(e);
             }
         }
-        //
-        return classList;
     }
 
     private static FileSystem jarFileSystem;
@@ -324,16 +304,6 @@ public class Gutty {
         }
         catch (Exception e) {
             return null;
-        }
-    }
-
-    public static <T> boolean hasInstance(Injector injector, Class<T> clazz) {
-        try {
-            injector.getInstance(clazz);
-            return true;
-        }
-        catch (Exception e) {
-            return false;
         }
     }
 }

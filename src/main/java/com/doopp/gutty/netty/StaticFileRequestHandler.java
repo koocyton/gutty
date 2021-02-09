@@ -4,14 +4,9 @@ import com.doopp.gutty.NotFoundException;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.ws.rs.core.MediaType;
 import java.io.*;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
