@@ -1,7 +1,6 @@
 package com.doopp.gutty;
 
 import com.doopp.gutty.filter.Filter;
-import com.doopp.gutty.filter.FilterHandler;
 import com.doopp.gutty.netty.Http1RequestHandler;
 import com.doopp.gutty.netty.StaticFileRequestHandler;
 import com.doopp.gutty.netty.WebSocketServerHandler;
@@ -97,7 +96,7 @@ class Netty {
                 // that adds support for writing a large data stream
                 ch.pipeline().addLast(new ChunkedWriteHandler());
                 // filter
-                ch.pipeline().addLast(new FilterHandler(injector, uriFilters));
+                // ch.pipeline().addLast(new FilterHandler(injector, uriFilters));
                 // websocket
                 ch.pipeline().addLast(new WebSocketServerHandler(injector));
                 // http request

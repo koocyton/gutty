@@ -4,6 +4,7 @@ import com.doopp.gutty.annotation.websocket.Socket;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.Service;
 import com.doopp.gutty.filter.Filter;
+import com.doopp.gutty.filter.FilterHandler;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.*;
@@ -123,6 +124,11 @@ public class Gutty {
                 }
                 Class<? extends T> clazzT = (Class<? extends T>) clazz;
                 binder.bind(interfaceClazz).to(clazzT).in(Scopes.SINGLETON);
+            }
+            @Provides
+            @Singleton
+            public FilterHandler filterHandler() {
+                return new FilterHandler(uriFilters);
             }
         });
         // 获取包下的所有类
