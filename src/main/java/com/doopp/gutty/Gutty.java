@@ -14,7 +14,6 @@ import com.google.inject.name.Names;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
-import org.mybatis.guice.datasource.helper.JdbcHelper;
 
 import javax.inject.Provider;
 import javax.sql.DataSource;
