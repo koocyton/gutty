@@ -73,11 +73,11 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
             ctx.fireChannelRead(httpRequest.retain());
             return;
         }
-        catch (InvocationTargetException e) {
-            throw new RuntimeException(e.getCause());
-        }
         catch (RuntimeException e) {
             throw e;
+        }
+        catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
         }
         catch (Exception e) {
             throw new RuntimeException(e);
