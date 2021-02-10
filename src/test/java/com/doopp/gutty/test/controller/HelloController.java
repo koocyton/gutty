@@ -57,7 +57,8 @@ public class HelloController {
     @Path("/hello")
     @Produces("application/json")
     public String hello(@CookieParam("user") String user) {
-        return helloService.hello();
+        throw new RuntimeException("fuck");
+        // return helloService.hello();
     }
 
     @GET

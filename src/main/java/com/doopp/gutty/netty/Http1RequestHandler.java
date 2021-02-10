@@ -14,6 +14,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
@@ -71,6 +72,9 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         catch (NotFoundException e) {
             ctx.fireChannelRead(httpRequest.retain());
             return;
+        }
+        catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
         }
         catch (RuntimeException e) {
             throw e;
