@@ -4,20 +4,12 @@ import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.filter.FilterChain;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
 public class ApiFilter implements Filter {
 
@@ -27,7 +19,7 @@ public class ApiFilter implements Filter {
     private Injector injector;
 
     @Override
-    public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FilterChain filterChain) {
+    public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, FilterChain filterChain) {
 
         System.out.println(httpRequest.uri());
         // 不过滤的uri
@@ -70,28 +62,28 @@ public class ApiFilter implements Filter {
                     throw new RuntimeException("haha");
                 }
             }
-            filterChain.fireChannelRead(ctx, httpRequest);
+            filterChain.doFilter(httpRequest, httpResponse);
         }
         catch (Exception e) {
-            FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-            writeExceptionResponse(500, ctx, httpRequest, httpResponse, "ni cuo le ");
+            // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
+            // writeExceptionResponse(500, httpRequest, httpResponse, "ni cuo le ");
         }
     }
 
-    private static void writeExceptionResponse(int errorCode, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, String errorMessage) {
-        byte[] result = ("{\"code\":" + errorCode + ", \"msg\":\"" + errorMessage + "\", \"data\":null}").getBytes();
-        httpResponse.setStatus(HttpResponseStatus.OK);
-        httpResponse.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON + "; charset=UTF-8");
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
-        // set length
-        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
-        if (HttpUtil.isKeepAlive(httpRequest)) {
-            httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        }
-        ctx.write(httpResponse);
-        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (!HttpUtil.isKeepAlive(httpRequest)) {
-            future.addListener(ChannelFutureListener.CLOSE);
-        }
-    }
+//    private static void writeExceptionResponse(int errorCode, FullHttpRequest httpRequest, FullHttpResponse httpResponse, String errorMessage) {
+//        byte[] result = ("{\"code\":" + errorCode + ", \"msg\":\"" + errorMessage + "\", \"data\":null}").getBytes();
+//        httpResponse.setStatus(HttpResponseStatus.OK);
+//        httpResponse.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON + "; charset=UTF-8");
+//        httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
+//        // set length
+//        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+//        if (HttpUtil.isKeepAlive(httpRequest)) {
+//            httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+//        }
+//        ctx.write(httpResponse);
+//        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+//        if (!HttpUtil.isKeepAlive(httpRequest)) {
+//            future.addListener(ChannelFutureListener.CLOSE);
+//        }
+//    }
 }

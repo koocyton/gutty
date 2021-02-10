@@ -4,7 +4,6 @@ import com.doopp.gutty.annotation.websocket.Socket;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.Service;
 import com.doopp.gutty.filter.Filter;
-import com.doopp.gutty.filter.FilterHandler;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.*;
@@ -15,6 +14,7 @@ import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.sql.DataSource;
 import javax.ws.rs.*;
@@ -227,8 +227,8 @@ public class Gutty {
             }
             @Provides
             @Singleton
-            public FilterHandler filterHandler() {
-                return new FilterHandler(filterMap);
+            public Map<String, Class<? extends  Filter>> filterMap() {
+                return filterMap;
             }
         });
     }
