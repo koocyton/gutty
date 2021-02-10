@@ -1,19 +1,18 @@
 package com.doopp.gutty.filter;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 
-import java.util.function.BiConsumer;
-
 public class FilterChain {
 
-    private final BiConsumer<FullHttpRequest, FullHttpResponse> biConsumer;
+    private final FilterHandler filterHandler;
 
-    public FilterChain(BiConsumer<FullHttpRequest, FullHttpResponse> biConsumer) {
-        this.biConsumer = biConsumer;
+    public FilterChain(FilterHandler filterHandler) {
+        this.filterHandler = filterHandler;
     }
 
-    public void doFilter(FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
-        this.biConsumer.accept(httpRequest, httpResponse);
+    public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+        filterHandler.handleRequest(ctx, httpRequest, httpResponse);
     }
 }
