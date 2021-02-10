@@ -34,10 +34,10 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
         FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
                 ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                 : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
-        handleFilter(ctx, httpRequest, httpResponse);
+        handleFilter(ctx, httpRequest, httpResponse, this);
     }
 
-    private void handleFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    private void handleFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, FilterHandler filterHandler) {
         // 如果 filter map 为空
         if (filterMap==null || filterMap.size()<1) {
             handleRequest(ctx, httpRequest, httpResponse);
