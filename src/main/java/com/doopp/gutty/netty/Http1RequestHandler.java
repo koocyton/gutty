@@ -32,46 +32,39 @@ public class Http1RequestHandler extends SimpleChannelInboundHandler<FullHttpReq
     private Map<String, Class<? extends Filter>> filterMap;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
-                ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
-                : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
+                ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
+                : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
         executeFilters(ctx, httpRequest, httpResponse, (req, rep)->{
-            completeRequest(ctx, req, rep);
+            try {
+                completeRequest(ctx, req, rep);
+            }
+            catch (NotFoundException e) {
+                ctx.fireChannelRead(httpRequest.retain());
+            }
+            catch (RuntimeException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
-    private void completeRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
-        // if (HttpUtil.is100ContinueExpected(httpRequest)) {
-        //    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
-        //    ctx.writeAndFlush(response);
-        // }
-
-        // init httpResponse
-        // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
-        byte[] result;
-        System.out.println("abc");
-        try {
-            // execute route
-            result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
-        }
-        catch (NotFoundException e) {
-            System.out.println(e.getStackTrace());
-            ctx.fireChannelRead(httpRequest.retain());
-            return;
-        }
-        catch (Exception e) {
-            sendError(ctx, e, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            return;
-        }
+    private void completeRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws Exception {
+        // 执行路由
+        byte[] result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
+        // 写入内容
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
-
+        // keep alive
         if (HttpUtil.isKeepAlive(httpRequest)) {
             httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         }
-
+        // set status
+        httpResponse.setStatus(HttpResponseStatus.OK);
         ctx.write(httpResponse);
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         if (!HttpUtil.isKeepAlive(httpRequest)) {

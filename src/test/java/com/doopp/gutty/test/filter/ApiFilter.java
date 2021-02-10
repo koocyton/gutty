@@ -21,7 +21,6 @@ public class ApiFilter implements Filter {
     @Override
     public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, FilterChain filterChain) {
 
-        System.out.println(httpRequest.uri());
         // 不过滤的uri
         String[] notFilterUris = new String[]{
                 "/index.html",
@@ -31,7 +30,6 @@ public class ApiFilter implements Filter {
                 "/js",
                 "/chat",
                 "/ws",
-                "/api",
         };
 
         // 请求的uri
