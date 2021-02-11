@@ -1,5 +1,6 @@
 package com.doopp.gutty.test;
 
+import com.doopp.gutty.redis.JedisPoolConfigProvider;
 import com.doopp.gutty.test.filter.ApiFilter;
 import com.doopp.gutty.Gutty;
 import com.doopp.gutty.json.JacksonMessageConverter;
@@ -7,6 +8,7 @@ import com.doopp.gutty.redis.RedisModule;
 import com.doopp.gutty.redis.ShardedJedisHelper;
 import com.doopp.gutty.view.FreemarkerViewResolver;
 import com.github.pagehelper.PageInterceptor;
+import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -35,9 +37,23 @@ public class MVCApplication {
                 // .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
                 .addModules(
                         new RedisModule() {
+
+                            @Override
+                            protected void initialize() {
+                                bindJedisPoolConfigProvider(JedisPoolConfigProvider.class);
+                            }
+
                             @Singleton
                             @Provides
+                            @Named("userRedis")
                             public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.user.servers") String userServers) {
+                                return new ShardedJedisHelper(userServers, jedisPoolConfig);
+                            }
+
+                            @Singleton
+                            @Provides
+                            @Named("testRedis")
+                            public ShardedJedisHelper testRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.test.servers") String userServers) {
                                 return new ShardedJedisHelper(userServers, jedisPoolConfig);
                             }
                         },

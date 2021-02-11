@@ -9,6 +9,7 @@ import com.doopp.gutty.annotation.FileParam;
 import com.doopp.gutty.redis.ShardedJedisHelper;
 import com.doopp.gutty.view.ModelMap;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ public class HelloController {
     private UserDao userDao;
 
     @Inject
+    @Named("userRedis")
     private ShardedJedisHelper userRedis;
 
     @GET
