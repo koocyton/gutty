@@ -34,7 +34,7 @@
 * [√] Controller 识别 Protobuf 请求
 * [√] 文件上传 @FileParam
 * [√] 增加模板，自带 Freemarker 和 Thymeleaf
-* [ ] Session  RequestAttribute
+* [√] Session  RequestAttribute
 * [√] filter 支持
 
  Websocket
