@@ -53,12 +53,12 @@
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.7</version>
+    <version>0.14.8</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.7'
+compile 'com.doopp:gutty:0.14.8'
 ```
 
 #### 示例

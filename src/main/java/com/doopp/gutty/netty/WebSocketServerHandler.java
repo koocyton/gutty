@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> {
+public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
@@ -25,14 +25,19 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
-            callSocketConnect(ctx, (FullHttpRequest) msg);
+            FullHttpRequest httpRequest = (FullHttpRequest) msg;
+            FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
+                    ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
+                    : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
+            handleFilter(ctx, httpRequest, httpResponse, this);
         }
         else if (msg instanceof WebSocketFrame) {
             callSocketMethod(ctx, msg);
         }
     }
 
-    private void callSocketConnect(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+    @Override
+    public void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // is websocket
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
             // 获取路由

@@ -1,5 +1,6 @@
 package com.doopp.gutty.test.controller;
 
+import com.doopp.gutty.annotation.RequestAttribute;
 import com.doopp.gutty.test.dao.UserDao;
 import com.doopp.gutty.test.pojo.User;
 import com.doopp.gutty.test.service.HelloService;
@@ -57,14 +58,14 @@ public class HelloController {
     @Path("/hello")
     @Produces("application/json")
     public String hello(@CookieParam("user") String user) {
-        throw new RuntimeException("fuck");
-        // return helloService.hello();
+        return helloService.hello();
     }
 
     @GET
     @Path("/users")
     @Produces("application/json")
-    public List<User> users() {
+    public List<User> users(@RequestAttribute("hello") String hello) {
+        System.out.println(hello);
         return userDao.selectAll();
     }
 

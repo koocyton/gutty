@@ -9,6 +9,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +35,6 @@ public class ApiFilter implements Filter {
                 "/img",
                 "/js",
                 "/chat",
-                "/ws",
-                "/api",
         };
 
         // 请求的uri
@@ -59,11 +58,14 @@ public class ApiFilter implements Filter {
 
         // do filter ... :)
         try {
+            // System.out.println(">>>");
             if (doFilter) {
                 // 从 Header 里拿到 Authentication ( Base64.encode )
                 String userToken = httpRequest.headers().get("User-Token");
+                ctx.channel().attr(AttributeKey.valueOf("hello")).set("Nihao Token");
+                // System.out.println(">>" +userToken);
                 if (userToken==null) {
-                    throw new RuntimeException("the token not found");
+                    // throw new RuntimeException("the token not found");
                 }
             }
             filterChain.doFilter(ctx, httpRequest, httpResponse);
