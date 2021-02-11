@@ -2,14 +2,12 @@ package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
 import com.doopp.gutty.NotFoundException;
-import com.doopp.gutty.filter.Filter;
 import com.google.inject.*;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
@@ -18,15 +16,12 @@ public class Http1RequestHandler extends AbstractFilterHandler<FullHttpRequest> 
     @Inject
     private Injector injector;
 
-    @Inject
-    private Map<String, Class<? extends Filter>> filterMap;
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
                 ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                 : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
-        handleFilter(injector, ctx, httpRequest, httpResponse, this);
+        handleFilter(ctx, httpRequest, httpResponse, this);
     }
 
     @Override

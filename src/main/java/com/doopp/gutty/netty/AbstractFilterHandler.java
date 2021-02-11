@@ -23,7 +23,11 @@ public abstract class AbstractFilterHandler<I> extends SimpleChannelInboundHandl
     @Inject
     private Map<String, Class<? extends Filter>> filterMap;
 
-    protected void handleFilter(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, AbstractFilterHandler<?> filterHandler) {
+    @Inject
+    private Injector injector;
+
+    protected void handleFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, AbstractFilterHandler<?> filterHandler) {
+
         try {
             // 如果 filter map 为空
             if (filterMap == null || filterMap.size() < 1) {
@@ -52,7 +56,7 @@ public abstract class AbstractFilterHandler<I> extends SimpleChannelInboundHandl
         }
     }
 
-    private void sendError(ChannelHandlerContext ctx, Exception e, HttpResponseStatus status) {
+    protected void sendError(ChannelHandlerContext ctx, Exception e, HttpResponseStatus status) {
         if (!(e instanceof NotFoundException)) {
             e.printStackTrace();
         }

@@ -1,33 +1,23 @@
 package com.doopp.gutty.netty;
 
 import com.doopp.gutty.NotFoundException;
-import com.doopp.gutty.filter.Filter;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.*;
-import java.util.Map;
 
 public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequest> {
 
     private static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
-
-    @Inject
-    private Injector injector;
-
-    @Inject
-    private Map<String, Class<? extends Filter>> filterMap;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
                 ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
                 : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
-        handleFilter(injector, ctx, httpRequest, httpResponse, this);
+        handleFilter(ctx, httpRequest, httpResponse, this);
     }
 
     @Override
@@ -37,10 +27,13 @@ public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequ
         if (indexOf!=-1) {
             requestUri = requestUri.substring(0, indexOf);
         }
+
         // 获取静态文件
         InputStream ins = getClass().getResourceAsStream("/public" + requestUri);
         if (ins==null) {
-            throw new NotFoundException("");
+            sendError(ctx,  new NotFoundException(""), HttpResponseStatus.NOT_FOUND);
+            return;
+            // throw new NotFoundException("");
             // ctx.fireChannelRead(httpRequest.retain());
             // Http1RequestHandler.sendError(ctx, new NotFoundException(""), HttpResponseStatus.NOT_FOUND);
             // return;
@@ -73,6 +66,7 @@ public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequ
         else if (httpRequest.protocolVersion().equals(HttpVersion.HTTP_1_0)) {
             httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         }
+        httpResponse.setStatus(HttpResponseStatus.OK);
         // ctx write
         ctx.write(httpResponse);
         ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);

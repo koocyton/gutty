@@ -69,6 +69,7 @@ public class ApiFilter implements Filter {
             filterChain.doFilter(ctx, httpRequest, httpResponse);
         }
         catch (Exception e) {
+            e.printStackTrace();
             // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
             writeExceptionResponse(500, ctx, httpRequest, httpResponse, e.getMessage());
         }
