@@ -1,19 +1,37 @@
 package com.doopp.gutty.netty;
 
 import com.doopp.gutty.NotFoundException;
+import com.doopp.gutty.filter.Filter;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.*;
+import java.util.Map;
 
-public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequest> {
 
     private static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
 
+    @Inject
+    private Injector injector;
+
+    @Inject
+    private Map<String, Class<? extends Filter>> filterMap;
+
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+        FullHttpResponse httpResponse = (HttpUtil.is100ContinueExpected(httpRequest))
+                ? new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
+                : new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.CONTINUE);
+        handleFilter(injector, ctx, httpRequest, httpResponse, this);
+    }
+
+    @Override
+    public void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws IOException {
         String requestUri = httpRequest.uri();
         int indexOf = requestUri.indexOf("?");
         if (indexOf!=-1) {
@@ -22,9 +40,10 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         // 获取静态文件
         InputStream ins = getClass().getResourceAsStream("/public" + requestUri);
         if (ins==null) {
+            throw new NotFoundException("");
             // ctx.fireChannelRead(httpRequest.retain());
-            Http1RequestHandler.sendError(ctx, new NotFoundException(""), HttpResponseStatus.NOT_FOUND);
-            return;
+            // Http1RequestHandler.sendError(ctx, new NotFoundException(""), HttpResponseStatus.NOT_FOUND);
+            // return;
         }
         // 读取文件
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -36,7 +55,7 @@ public class StaticFileRequestHandler extends SimpleChannelInboundHandler<FullHt
         ins.close();
 
         // init httpResponse
-        FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
+        // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(bout.toByteArray()));
         // set length
         httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
