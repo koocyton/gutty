@@ -34,17 +34,19 @@ public class HelloController {
     @GET
     @Path("/redis/read")
     @Produces("application/json")
-    public String readRedis() {
-        return userRedis.get("hello");
+    public User readRedis() {
+        User user = userRedis.get("user_redis".getBytes(), User.class);
+        return user;
     }
 
     @GET
     @Path("/redis/write")
     @Produces("application/json")
-    public String writeRedis() {
-        Long setValue = System.currentTimeMillis();
-        userRedis.set("hello", String.valueOf(setValue));
-        return String.valueOf(setValue);
+    public User writeRedis() {
+        User user = new User();
+        user.setId(System.currentTimeMillis());
+        userRedis.set("user_redis".getBytes(), user);
+        return user;
     }
 
     @GET

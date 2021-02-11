@@ -1,13 +1,11 @@
 package com.doopp.gutty.redis;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -209,16 +207,30 @@ public class ShardedJedisHelper {
         }
     }
 
-    private byte[] serialize(Object object) {
-        Kryo kryo = new Kryo();
-        Output output = new Output(new byte[2048]);
-        kryo.writeObject(output, object);
-        output.close();
-        return output.toBytes();
+    public byte[] serialize(Object obj){
+        byte[] bytes = null;
+        try {
+            ByteArrayOutputStream baos=new ByteArrayOutputStream();
+            ObjectOutputStream oos=new ObjectOutputStream(baos);
+            oos.writeObject(obj);
+            bytes=baos.toByteArray();
+            baos.close();
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
     }
 
     private <T> T deserialize(byte[] bytes, Class<T> clazz) {
-        Kryo kryo = new Kryo();
-        return kryo.readObject(new Input(bytes), clazz);
+        Object obj=null;
+        try {
+            ByteArrayInputStream bais=new ByteArrayInputStream(bytes);
+            ObjectInputStream ois=new ObjectInputStream(bais);
+            obj=ois.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return (obj==null) ? null : clazz.cast(obj);
     }
 }
