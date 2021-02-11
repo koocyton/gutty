@@ -13,7 +13,7 @@ public class FilterChain {
         this.filterHandler = filterHandler;
     }
 
-    public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
+    public void doFilter(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws Exception {
         filterHandler.handleRequest(ctx, httpRequest, httpResponse);
     }
 }

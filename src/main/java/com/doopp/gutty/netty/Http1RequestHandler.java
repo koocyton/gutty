@@ -1,27 +1,19 @@
 package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
-import com.doopp.gutty.Gutty;
 import com.doopp.gutty.NotFoundException;
 import com.doopp.gutty.filter.Filter;
-import com.doopp.gutty.filter.FilterChain;
 import com.google.inject.*;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class Http1RequestHandler extends AbstractFilterHandler<FullHttpRequest> {
-
-    private final static Logger logger = LoggerFactory.getLogger(Http1RequestHandler.class);
 
     @Inject
     private Injector injector;

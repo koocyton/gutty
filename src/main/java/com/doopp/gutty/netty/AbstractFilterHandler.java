@@ -23,7 +23,7 @@ public abstract class AbstractFilterHandler<I> extends SimpleChannelInboundHandl
     @Inject
     private Map<String, Class<? extends Filter>> filterMap;
 
-    protected void handleFilter(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, AbstractFilterHandler filterHandler) {
+    protected void handleFilter(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse, AbstractFilterHandler<?> filterHandler) {
         try {
             // 如果 filter map 为空
             if (filterMap == null || filterMap.size() < 1) {
@@ -39,7 +39,7 @@ public abstract class AbstractFilterHandler<I> extends SimpleChannelInboundHandl
                     Filter filter = Gutty.getInstance(injector, filterClass);
                     // filter 不能为空
                     if (filter != null) {
-                        filter.doFilter(ctx, httpRequest, httpResponse, new FilterChain(this));
+                        filter.doFilter(ctx, httpRequest, httpResponse, new FilterChain(filterHandler));
                         return;
                     }
                 }
