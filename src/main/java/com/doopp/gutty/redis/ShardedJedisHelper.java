@@ -207,7 +207,7 @@ public class ShardedJedisHelper {
         }
     }
 
-    public byte[] serialize(Object obj){
+    private byte[] serialize(Object obj){
         byte[] bytes = null;
         try {
             ByteArrayOutputStream baos=new ByteArrayOutputStream();
