@@ -5,7 +5,7 @@ import java.io.*;
 public class JdkSerializableHelper implements SerializableHelper {
 
     @Override
-    public byte[] serialize(Object obj){
+    public byte[] serialize(Object obj) {
         byte[] bytes = null;
         try {
             ByteArrayOutputStream baos=new ByteArrayOutputStream();
@@ -15,7 +15,7 @@ public class JdkSerializableHelper implements SerializableHelper {
             baos.close();
             oos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return bytes;
     }
@@ -27,8 +27,8 @@ public class JdkSerializableHelper implements SerializableHelper {
             ByteArrayInputStream bais=new ByteArrayInputStream(bytes);
             ObjectInputStream ois=new ObjectInputStream(bais);
             obj=ois.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
         return (obj==null) ? null : clazz.cast(obj);
     }
