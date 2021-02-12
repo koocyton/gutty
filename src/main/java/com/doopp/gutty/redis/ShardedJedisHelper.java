@@ -5,7 +5,6 @@ import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -14,11 +13,13 @@ public class ShardedJedisHelper {
 
     private final ShardedJedisPool shardedJedisPool;
 
-    public ShardedJedisHelper(String redisServers, JedisPoolConfig jedisPoolConfig) {
-        this(redisServers.split(","), jedisPoolConfig);
+    private final SerializableHelper serializableHelper;
+
+    public ShardedJedisHelper(String redisServers, JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper) {
+        this(redisServers.split(","), jedisPoolConfig, serializableHelper);
     }
 
-    public ShardedJedisHelper(String[] redisServers, JedisPoolConfig jedisPoolConfig) {
+    public ShardedJedisHelper(String[] redisServers, JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper) {
         List<JedisShardInfo> jedisInfoList = new ArrayList<>(redisServers.length);
         for (String redisServer : redisServers) {
             JedisShardInfo jedisShardInfo = new JedisShardInfo(redisServer);
@@ -26,6 +27,7 @@ public class ShardedJedisHelper {
             jedisShardInfo.setSoTimeout(2000);
             jedisInfoList.add(jedisShardInfo);
         }
+        this.serializableHelper = serializableHelper;
         this.shardedJedisPool = new ShardedJedisPool(jedisPoolConfig, jedisInfoList);
     }
 
@@ -58,14 +60,14 @@ public class ShardedJedisHelper {
 
     public void setex(byte[] key, int seconds, Object object) {
         this.executeJedis((shardedJedis)->{
-            byte[] _object = this.serialize(object);
+            byte[] _object = serializableHelper.serialize(object);
             return shardedJedis.setex(key, seconds, _object);
         });
     }
 
     public void set(byte[] key, Object object) {
         this.executeJedis((shardedJedis)->{
-            byte[] _object = this.serialize(object);
+            byte[] _object = serializableHelper.serialize(object);
             shardedJedis.set(key, _object);
             return null;
         });
@@ -84,7 +86,7 @@ public class ShardedJedisHelper {
         }
         Object desObj;
         try {
-            desObj = this.deserialize(objectByte, clazz);
+            desObj = serializableHelper.deserialize(objectByte, clazz);
         }
         catch(Exception e) {
             return null;
@@ -118,7 +120,7 @@ public class ShardedJedisHelper {
 
     public void lset(byte[] key, long index, Object object) {
         this.executeJedis((shardedJedis)-> {
-            byte[] _object = this.serialize(object);
+            byte[] _object = serializableHelper.serialize(object);
             return shardedJedis.lset(key, index, _object);
         });
     }
@@ -137,7 +139,7 @@ public class ShardedJedisHelper {
 
     public void rpush(byte[] key, Object object) {
         this.executeJedis((shardedJedis)-> {
-            byte[] _object = this.serialize(object);
+            byte[] _object = serializableHelper.serialize(object);
             return shardedJedis.rpush(key, _object);
         });
     }
@@ -205,32 +207,5 @@ public class ShardedJedisHelper {
             // e.printStackTrace();
             return null;
         }
-    }
-
-    private byte[] serialize(Object obj){
-        byte[] bytes = null;
-        try {
-            ByteArrayOutputStream baos=new ByteArrayOutputStream();
-            ObjectOutputStream oos=new ObjectOutputStream(baos);
-            oos.writeObject(obj);
-            bytes=baos.toByteArray();
-            baos.close();
-            oos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bytes;
-    }
-
-    private <T> T deserialize(byte[] bytes, Class<T> clazz) {
-        Object obj=null;
-        try {
-            ByteArrayInputStream bais=new ByteArrayInputStream(bytes);
-            ObjectInputStream ois=new ObjectInputStream(bais);
-            obj=ois.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return (obj==null) ? null : clazz.cast(obj);
     }
 }

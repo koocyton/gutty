@@ -2,9 +2,10 @@ package com.doopp.gutty.redis;
 
 import java.io.*;
 
-public class ObjectSerializableProvider {
+public class JdkSerializableHelper implements SerializableHelper {
 
-    private byte[] serialize(Object obj){
+    @Override
+    public byte[] serialize(Object obj){
         byte[] bytes = null;
         try {
             ByteArrayOutputStream baos=new ByteArrayOutputStream();
@@ -19,7 +20,8 @@ public class ObjectSerializableProvider {
         return bytes;
     }
 
-    private <T> T deserialize(byte[] bytes, Class<T> clazz) {
+    @Override
+    public <T> T deserialize(byte[] bytes, Class<T> clazz) {
         Object obj=null;
         try {
             ByteArrayInputStream bais=new ByteArrayInputStream(bytes);
