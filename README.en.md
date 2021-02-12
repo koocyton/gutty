@@ -47,12 +47,12 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.8</version>
+    <version>0.14.9</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.8'
+compile 'com.doopp:gutty:0.14.9'
 ```
 
 #### Example

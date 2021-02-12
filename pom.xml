@@ -6,7 +6,7 @@
 
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.9-SNAPSHOT</version>
+    <version>0.14.10-SNAPSHOT</version>
     <description>Guice netty Components</description>
     <name>gutty</name>
     <url>https://github.com/koocyton/gutty</url>
