@@ -11,12 +11,12 @@
 
 #### 简介
 ```
-一直很喜欢 Netty 和 Guice ，简单好用，
-网上有不少整合的例子，但是这些例子也多是基于 Netty 或 Guice 特性的，缺少值的自动传入和路由注解等功能，这是我最爱的。
-之前将 Spring 出的 Reactor-Netty 和 Guice 整合了一遍，因为他已经处理好了路由，还有长连接，
-只用把参数自动传入，整合起来省事不少, 但是 Reactor 那个写法确实不习惯，有些方法也不熟悉，用起来常常绕晕自己。
-最近有点时间，撸起袖子开始整，其实写的特别慢，特别是开始处理长连接时，几十行，边学习边摸索用了四五天，想明白了写，没想明白玩！
-所以，目前代码质量都是基于摸索下成型的，后面空再学习和整理。 
+一直很喜欢 Netty 和 Guice，简单好用，一直想自己动手来整合他们。
+Gutty 大概用了一个月的时间来做，参考 Spring 中一些习惯，
+通过扫描包完成路由，依赖，长链接配置，或是自动给 Controller 传递值。
+也预置了 模板，Redis 和 Mybatis 的便捷接入，
+可以按 URI 来添加多个 Filter,
+后面还会继续的完善和添加便捷的功能。
 ```
 
 #### 功能列表和完成状况
@@ -24,28 +24,27 @@
   短连接
 
 * [√] Guice 和 Netty 整合
-* [√] 可自定义添加 Guice 的 Model
-* [√] 在类上加注解（@Service @Controller @Socket）自动扫描完成依赖注入
-* [√] 通过 @Path 完成路由的配置，类和方法上的取值会自动连接
-* [√] 识别请求的 @Post @Get @Delete @Put 的 httpMethod
+* [√] 启动时扫描包，为 @Controller 和 @Socket 的类配置路由
+* [√] 自动绑定扫描到的 @Service 的类(普通的绑定 和 按名称绑定)
+* [√] @Post @Get @Delete @Put 的 httpMethod 支持
 * [√] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
-* [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
+* [√] 控制类下的方法参数传入，支持 @CookieParm @QueryParam @PathParam @FormParam
 * [√] Controller 识别 和输出 Json 请求
 * [√] Controller 识别 Protobuf 请求
-* [√] 文件上传 @FileParam
-* [√] 增加模板，自带 Freemarker 和 Thymeleaf
-* [√] Session  RequestAttribute
-* [√] filter 支持
+* [√] 可以通过 @FileParam 来上传文件
+* [√] 支持模板，预置 Freemarker 和 Thymeleaf 的接入
+* [√] 支持 @RequestAttribute，可以用来提供 Session 功能
+* [√] 适配 uri 的 Filter 支持
 
  Websocket
 
 * [√] 整合 Websocket，通过 @Socket 指定类接收长连接数据
 * [√] Websocket 的路由通过类的 @Path 完成配置
-* [√] 通过方法上的注解 @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong 完成不同数据包的传递
+* [√] 支持 @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong 完成不同数据包的传递
 * [√] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
-* [√] protobuf , json 的自动编码，解码到变量
+* [√] 添加 protobuf， json 的自动编码，解码到变量
+* [√] 适配 uri 的 Filter 支持
 * [ ] 长连接的参数还需要补充和完善
-* [√] filter 支持
 ```
 
 #### 引入
@@ -64,25 +63,46 @@ compile 'com.doopp:gutty:0.14.9'
 #### 示例
 ```java
 // 驱动 Gutty
+// java -jar test.jar test.properties
 public static void main(String[] args) {
-    new Gutty().loadProperties(args)
-                .setBasePackages("com.doopp.gutty.auth")
-                .setMessageConverter(JacksonMessageConverter.class)
-                .setViewResolver(FreemarkerViewResolver.class)
-                .addFilter("/api", ApiFilter.class)
-                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.auth.dao", PageInterceptor.class)
-                .addModules(new RedisModule() {
-                    @Singleton
-                    @Provides
-                    public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.user.servers") String userServers) {
-                        return new ShardedJedisHelper(userServers, jedisPoolConfig);
-                    }
-                 })
-                .addInjectorConsumer(injector->{
-                    ScheduledExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(8);
-                    newScheduledThreadPool.scheduleWithFixedDelay(injector.getInstance(AgarTask.class), 1000, 16, TimeUnit.MILLISECONDS);
-                })
-                .start();
+    new Gutty().loadProperties(args) // 加载配置文件
+        // 设定扫描的包路径
+        .setBasePackages("com.doopp.gutty.test")
+        // Json 支持
+        .setMessageConverter(JacksonMessageConverter.class)
+        // 模板支持
+        .setViewResolver(FreemarkerViewResolver.class)
+        // 添加 Filter
+        .addFilter("/api", ApiFilter.class)
+        // 配置数据库，需要引入 guice-mybatis 包
+        .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
+        // 配置多个 redis
+        .addModules(
+            new RedisModule() {
+                @Override
+                protected void initialize() {
+                    bindJedisPoolConfigProvider(JedisPoolConfigProvider.class);
+                    bindSerializableHelper(JdkSerializableHelper.class);
+                }
+                @Singleton
+                @Provides
+                @Named("userRedis")
+                public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper, @Named("redis.user.servers") String userServers) {
+                    return new ShardedJedisHelper(userServers, jedisPoolConfig, serializableHelper);
+                }
+                @Singleton
+                @Provides
+                public ShardedJedisHelper testRedis(JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper, @Named("redis.test.servers") String userServers) {
+                    return new ShardedJedisHelper(userServers, jedisPoolConfig, serializableHelper);
+                }
+            }
+        )
+        // 完成 injector 配置后，执行里面的代码，多用于任务的执行
+        .addInjectorConsumer(injector->{
+            ScheduledExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(8);
+            newScheduledThreadPool.scheduleWithFixedDelay(injector.getInstance(AgarTask.class), 1000, 16, TimeUnit.MILLISECONDS);
+        })
+        .start();
 }
 ```
 
@@ -97,20 +117,29 @@ public class HelloController {
     @Inject
     private HelloService helloService;
 
+    @Inject
+    private UserDao userDao;
+
+    @Inject
+    @Named("userRedis")
+    private ShardedJedisHelper userRedis;
+
     @GET
     @Path("/redis/read")
     @Produces("application/json")
-    public String readRedis() {
-        return userRedis.get("hello");
+    public User readRedis() {
+        User user = userRedis.get("user_redis".getBytes(), User.class);
+        return user;
     }
 
     @GET
     @Path("/redis/write")
     @Produces("application/json")
-    public String writeRedis() {
-        Long setValue = System.currentTimeMillis();
-        userRedis.set("hello", String.valueOf(setValue));
-        return String.valueOf(setValue);
+    public User writeRedis() {
+        User user = new User();
+        user.setId(System.currentTimeMillis());
+        userRedis.set("user_redis".getBytes(), user);
+        return user;
     }
 
     @GET
@@ -130,7 +159,8 @@ public class HelloController {
     @GET
     @Path("/users")
     @Produces("application/json")
-    public List<User> users() {
+    public List<User> users(@RequestAttribute("hello") String hello) {
+        System.out.println(hello);
         return userDao.selectAll();
     }
 
@@ -190,34 +220,24 @@ public class HelloServiceImpl implements HelloService {
 ```java
 // websocket 
 @Socket
-@Path("/ws/game") // 路由
+@Path("/ws/game")
 public class HelloSocket {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloSocket.class);
 
     @Open
-    public void onOpen(FullHttpRequest httpRequest) {
-        logger.info("httpRequest {}", httpRequest);
+    public void onConnect(Channel channel) {
+        channel.writeAndFlush(new TextWebSocketFrame("you connected"));
     }
 
-    @Message
-    public void onMessage(WebSocketFrame webSocketFrame) {
-        logger.info("onMessage : {}", webSocketFrame.getClass());
+    @TextMessage
+    public void onTextMessage(Channel channel) {
+        channel.writeAndFlush(new TextWebSocketFrame("hello"));
     }
 
     @TextMessage
     public void onJsonMessage(@JsonFrame User user) {
-        logger.info("user {}", user.getName());
-    }
-
-    @BinaryMessage
-    public void onProtobufMessage(@ProtobufFrame User user) {
-        logger.info("user {}", user);
-    }
-
-    @TextMessage
-    public void onTextMessage(TextWebSocketFrame textFrame) {
-        logger.info("textFrame {}", textFrame.text());
+        logger.info("user {}", user.getNickName());
     }
 
     @BinaryMessage
@@ -225,12 +245,24 @@ public class HelloSocket {
         logger.info("binaryFrame {}", binaryWebSocketFrame.content());
     }
 
+    @BinaryMessage
+    public void onProtobufMessage(@ProtobufFrame User user) {
+        logger.info("user {}", user);
+    }
+
+    //@Message
+    //public void onMessage(WebSocketFrame webSocketFrame) {
+        // logger.info("onMessage : {}", webSocketFrame.getClass());
+    //}
+
     @Ping
     public void onPing() {
+
     }
 
     @Pong
     public void onPong() {
+
     }
 
     @Close
