@@ -14,7 +14,6 @@ import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
 
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.sql.DataSource;
 import javax.ws.rs.*;
@@ -90,6 +89,11 @@ public class Gutty {
     public Gutty setBasePackages(String... basePackages) {
         Collections.addAll(this.basePackages, basePackages);
         return this;
+    }
+
+    // bind httpclient
+    public void bindHttpClient() {
+        componentClassMap.put(HttpClient.class, HttpClient.class);
     }
 
     // Json 处理类
