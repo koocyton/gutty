@@ -14,8 +14,6 @@ import org.mybatis.guice.MyBatisModule;
 import org.mybatis.guice.datasource.hikaricp.HikariCPProvider;
 import redis.clients.jedis.JedisPoolConfig;
 
-import javax.inject.Inject;
-
 public class MVCApplication {
 
     public static void main(String[] args) {
@@ -62,8 +60,7 @@ public class MVCApplication {
                                 addMapperClasses("com.doopp.gutty.test.dao");
                                 addInterceptorClass(PageInterceptor.class);
                             }
-                        },
-                        new SwaggerModule()
+                        }
                 )
                 .start();
     }
