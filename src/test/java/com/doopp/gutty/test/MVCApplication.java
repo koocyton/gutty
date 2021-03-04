@@ -62,7 +62,8 @@ public class MVCApplication {
                                 addMapperClasses("com.doopp.gutty.test.dao");
                                 addInterceptorClass(PageInterceptor.class);
                             }
-                        }
+                        },
+                        new SwaggerModule()
                 )
                 .start();
     }

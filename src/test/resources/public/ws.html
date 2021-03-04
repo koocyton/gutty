@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layuiAdmin pro - 通用后台管理模板系统（单页面专业版）</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="layui/css/layui.css" media="all">
+    <script>
+        let WebSocketService = function(uri, protocolHeaders) {
+            let protocol = /^https/.test(window.location.protocol) ? "wss\:\/\/" : "ws\:\/\/";
+            this.url = /^ws/.test(uri) ? uri : protocol + window.location.host + uri;
+            this.protocolHeaders = protocolHeaders;
+            this.ws = (typeof(this.protocolHeaders)==="object")
+                ? new WebSocket(this.url, this.protocolHeaders)
+                : new WebSocket(this.url);
+        };
+        WebSocketService.connect = function(url, protocolHeaders) {
+            return (typeof(protocolHeaders)==="object")
+                ? new WebSocketService(url, protocolHeaders)
+                : new WebSocketService(url);
+        };
+
+        WebSocketService.prototype.reconnect = function() {
+            this.ws = (typeof(this.protocolHeaders)==="object")
+                ? new WebSocket(this.url, this.protocolHeaders)
+                : new WebSocket(this.url);
+        };
+        WebSocketService.prototype.onOpen = function(callOpen) {
+            if (typeof callOpen==="function") {
+                this.ws.onopen = callOpen;
+            }
+            return this;
+        };
+        WebSocketService.prototype.onClose = function(callClose) {
+            if (typeof callClose==="function") {
+                this.ws.onclose = callClose;
+            }
+            return this;
+        };
+        WebSocketService.prototype.onError = function(callError) {
+            if (typeof callError==="function") {
+                this.ws.onerror = callError;
+            }
+            return this;
+        };
+        WebSocketService.prototype.onMessage = function(callMessage) {
+            if (typeof callMessage==="function") {
+                this.ws.onmessage = callMessage;
+            }
+            return this;
+        };
+        WebSocketService.prototype.send = function(message) {
+            this.ws.send(message);
+        };
+        WebSocketService.prototype.close = function() {
+            try {
+                this.ws.close();
+            }
+            catch(e) {
+            }
+        };
+    </script>
+</head>
+<body>
+<div id="LAY_app">
+
+    hello
+</div>
+<script>
+    let w = WebSocketService.connect("/ws/game");
+    w.onOpen(function () {
+    });
+    w.onMessage(function (message) {
+    });
+    w.onClose(function () {
+    });
+</script>
+</body>
+</html>
+
+

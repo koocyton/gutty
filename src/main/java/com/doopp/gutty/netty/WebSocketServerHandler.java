@@ -2,6 +2,7 @@ package com.doopp.gutty.netty;
 
 import com.doopp.gutty.Dispatcher;
 import com.doopp.gutty.HttpParam;
+import com.doopp.gutty.SocketRoute;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.netty.channel.*;
@@ -42,16 +43,17 @@ public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
         if (httpRequest.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.UPGRADE, true)) {
             // 获取路由
             Dispatcher dispatcher = Dispatcher.getInstance();
-            Dispatcher.SocketRoute socketRoute = dispatcher.getSocketRoute(httpRequest.uri());
+            SocketRoute socketRoute = dispatcher.getSocketRoute(httpRequest.uri());
             // 如果路由不能匹配
             if (socketRoute==null) {
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
                 ctx.channel().close();
                 return;
             }
+
             // Handshake
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                    getWebSocketLocation(httpRequest), null, true, 5 * 1024 * 1024);
+                    getWebSocketLocation(httpRequest), socketRoute.getSubprotocol(), true, 5 * 1024 * 1024);
             WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(httpRequest);
             if (handshaker == null) {
                 WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
@@ -72,7 +74,7 @@ public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
 
     private void callSocketMethod(ChannelHandlerContext ctx, Object msg) {
         // get socket route
-        Dispatcher.SocketRoute socketRoute = getSocketRoute(ctx);
+        SocketRoute socketRoute = getSocketRoute(ctx);
         FullHttpRequest httpRequest = getHttpRequest(ctx);
         if (socketRoute==null) {
             return;
@@ -154,7 +156,7 @@ public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
         }
     }
 
-    private Dispatcher.SocketRoute getSocketRoute(ChannelHandlerContext ctx) {
+    private SocketRoute getSocketRoute(ChannelHandlerContext ctx) {
         AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
         Attribute<FullHttpRequest> fullHttpRequestAttribute = ctx.channel().attr(requestAttributeKey);
         if (fullHttpRequestAttribute==null || fullHttpRequestAttribute.get()==null) {

@@ -40,6 +40,8 @@ public class ApiFilter implements Filter {
         // 请求的uri
         String uri = httpRequest.uri();
 
+        System.out.println(uri);
+
         // 是否过滤
         boolean doFilter = true;
 

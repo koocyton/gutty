@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Path;
 
-@Socket
+@Socket()
 @Path("/ws/game")
 public class HelloSocket {
 

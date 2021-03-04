@@ -80,6 +80,7 @@ public class Gutty {
                 bindTransactionFactoryType(JdbcTransactionFactory.class);
                 addMapperClasses(daoPackageName);
                 addInterceptorClass(interceptorsClass);
+                mapUnderscoreToCamelCase(true);
             }
         });
         return this;
@@ -89,11 +90,6 @@ public class Gutty {
     public Gutty setBasePackages(String... basePackages) {
         Collections.addAll(this.basePackages, basePackages);
         return this;
-    }
-
-    // bind httpclient
-    public void bindHttpClient() {
-        componentClassMap.put(HttpClient.class, HttpClient.class);
     }
 
     // Json 处理类
