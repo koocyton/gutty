@@ -44,7 +44,7 @@ Gutty 大概用了一个月的时间来做，参考 Spring 中一些习惯，
 * [√] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
 * [√] 添加 protobuf， json 的自动编码，解码到变量
 * [√] 适配 uri 的 Filter 支持
-* [ ] 长连接的参数还需要补充和完善
+* [√] @Socket 通过配置 subprotocol 来支持 Sec-WebSocket-Protocol 
 ```
 
 #### 引入
@@ -219,7 +219,7 @@ public class HelloServiceImpl implements HelloService {
 
 ```java
 // websocket 
-@Socket
+@Socket(subprotocol = "Auth-Token")
 @Path("/ws/game")
 public class HelloSocket {
 

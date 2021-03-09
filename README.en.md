@@ -37,9 +37,9 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] Use @Path config websocket route
 * [√] Support recevie @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong
 * [√] Support WebsocketFrame to revcive params
-* [√] protobuf , json 的自动编码，解码到变量
-* [ ] ... more
+* [√] protobuf , json auto encode & decode
 * [√] support filter
+* [√] support Sec-WebSocket-Protocol 
 ```
 
 #### import to project
@@ -47,12 +47,12 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.9</version>
+    <version>0.14.10</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.9'
+compile 'com.doopp:gutty:0.14.10'
 ```
 
 #### Example
@@ -183,7 +183,7 @@ public class HelloServiceImpl implements HelloService {
 
 ```java
 // websocket 
-@Socket
+@Socket(subprotocol = "Auth-Token")
 @Path("/ws/game") // route
 public class HelloSocket {
 

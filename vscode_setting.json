@@ -1,0 +1,55 @@
+// 将设置放入此文件中以覆盖默认设置
+{
+    "editor.fontSize": 20,
+    "extensions.ignoreRecommendations": false,
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    },
+    "workbench.startupEditor": "newUntitledFile",
+    // "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx256m -Xms100m -javaagent:\"/Users/henry/.vscode/extensions/gabrielbb.vscode-lombok-1.0.1/server/lombok.jar\"",
+    "java.semanticHighlighting.enabled": true,
+    "workbench.preferredDarkColorTheme": "Darcula Theme from IntelliJ",
+    "workbench.preferredHighContrastColorTheme": "Darcula Theme from IntelliJ",
+    "workbench.preferredLightColorTheme": "Darcula Theme from IntelliJ",
+    "editor.minimap.enabled": true,
+    "terminal.integrated.fontFamily": "Roboto Mono Light for Powerline",
+    "terminal.integrated.fontSize": 24,
+    "git.enableSmartCommit": true,
+    "dart.checkForSdkUpdates": false,
+    "java.completion.importOrder": [
+        "java",
+        "javax",
+        "com",
+        "org"
+    ],
+    "java.home":"/Library/Java/JavaVirtualMachines/jdk-11.0.8.jdk/Contents/Home",
+    "java.configuration.runtimes": [
+      {
+        "name": "JavaSE-1.8",
+        "path": "/Library/Java/JavaVirtualMachines/jdk1.8.0_91.jdk/Contents/Home",
+        "default": true
+      },
+      {
+        "name": "JavaSE-11",
+        "path": "/Library/Java/JavaVirtualMachines/jdk-11.0.8.jdk/Contents/Home"
+      }
+    ],
+    "python.languageServer": "Pylance",
+    "java.project.importOnFirstTimeStartup": "automatic",
+    "python.pythonPath": "/usr/local/opt/python@3.9/bin/python3.9",
+    "debug.console.fontSize": 24,
+    "dart.openDevTools": "flutter",
+    "workbench.colorTheme": "Darcula Theme from IntelliJ",
+    "java.import.gradle.home": "/usr/local/Cellar/gradle-5.6.3",
+    "workbench.editorAssociations": [
+      {
+        "viewType": "jupyter.notebook.ipynb",
+        "filenamePattern": "*.ipynb"
+      }
+    ]
+  }

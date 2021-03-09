@@ -3,6 +3,7 @@
 .gradle
 .vscode
 .meghanada
+.factorypath
 *.iml
 build
 out
