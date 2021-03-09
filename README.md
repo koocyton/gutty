@@ -52,12 +52,12 @@ Gutty 大概用了一个月的时间来做，参考 Spring 中一些习惯，
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.9</version>
+    <version>0.14.10</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.9'
+compile 'com.doopp:gutty:0.14.10'
 ```
 
 #### 示例
