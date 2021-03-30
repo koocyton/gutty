@@ -149,6 +149,12 @@ public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
         }
     }
 
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        super.handlerRemoved(ctx);
+        callSocketMethod(ctx, new CloseWebSocketFrame());
+    }
+
     private void setSocketRoute(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         if (ctx!=null && httpRequest!=null && httpRequest.uri()!=null) {
             AttributeKey<FullHttpRequest> requestAttributeKey = AttributeKey.valueOf("FullHttpRequest");
