@@ -7,7 +7,6 @@ import com.google.inject.*;
 import com.google.inject.name.Named;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -18,6 +17,14 @@ class Netty {
 
     @Inject
     private Injector injector;
+
+    @Inject
+    @Named("bossEventLoopGroup")
+    private EventLoopGroup bossEventLoopGroup;
+
+    @Inject
+    @Named("workerEventLoopGroup")
+    private EventLoopGroup workerEventLoopGroup;
 
     @Inject
     @Named("gutty.httpHost")
@@ -32,10 +39,6 @@ class Netty {
     private Integer httpsPort;
 
     public void run() {
-        // boss event
-        EventLoopGroup bossEventLoopGroup = new NioEventLoopGroup();
-        // worker event
-        EventLoopGroup workerEventLoopGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossEventLoopGroup, workerEventLoopGroup)

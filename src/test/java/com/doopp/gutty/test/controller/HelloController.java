@@ -55,7 +55,7 @@ public class HelloController {
     @Path("/template")
     public String template(ModelMap modelMap) {
         modelMap.addAttribute("hello", "hello freemarker !");
-        return "hello.template";
+        return "hello.ff";
     }
 
     @GET

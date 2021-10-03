@@ -24,6 +24,11 @@ public abstract class RedisModule extends AbstractModule {
         this.bind(JedisPoolConfig.class).toProvider(jedisPoolConfigProvider).in(Scopes.SINGLETON);
     }
 
+    protected final void bindShardedJedisPoolConfigProvider(Class<? extends Provider<ShardedJedisPoolConfig>> shardedJedisPoolConfig) {
+        Preconditions.checkNotNull(shardedJedisPoolConfig, "Parameter 'jedisPoolConfigProvider' must be not null");
+        this.bind(ShardedJedisPoolConfig.class).toProvider(shardedJedisPoolConfig).in(Scopes.SINGLETON);
+    }
+
     protected final void bindSerializableHelper(Class<? extends SerializableHelper> serializableHelperClass) {
         Preconditions.checkNotNull(serializableHelperClass, "Parameter 'serializableHelperClass' must be not null");
         this.bind(SerializableHelper.class).to(serializableHelperClass).in(Scopes.SINGLETON);

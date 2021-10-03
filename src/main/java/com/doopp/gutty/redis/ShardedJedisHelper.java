@@ -1,6 +1,5 @@
 package com.doopp.gutty.redis;
 
-import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
@@ -15,11 +14,11 @@ public class ShardedJedisHelper {
 
     private final SerializableHelper serializableHelper;
 
-    public ShardedJedisHelper(String redisServers, JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper) {
-        this(redisServers.split(","), jedisPoolConfig, serializableHelper);
+    public ShardedJedisHelper(String redisServers, ShardedJedisPoolConfig shardedJedisPoolConfig, SerializableHelper serializableHelper) {
+        this(redisServers.split(","), shardedJedisPoolConfig, serializableHelper);
     }
 
-    public ShardedJedisHelper(String[] redisServers, JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper) {
+    public ShardedJedisHelper(String[] redisServers, ShardedJedisPoolConfig shardedJedisPoolConfig, SerializableHelper serializableHelper) {
         List<JedisShardInfo> jedisInfoList = new ArrayList<>(redisServers.length);
         for (String redisServer : redisServers) {
             JedisShardInfo jedisShardInfo = new JedisShardInfo(redisServer);
@@ -28,7 +27,7 @@ public class ShardedJedisHelper {
             jedisInfoList.add(jedisShardInfo);
         }
         this.serializableHelper = serializableHelper;
-        this.shardedJedisPool = new ShardedJedisPool(jedisPoolConfig, jedisInfoList);
+        this.shardedJedisPool = new ShardedJedisPool(shardedJedisPoolConfig, jedisInfoList);
     }
 
     public void setex(String key, int seconds, String value) {
@@ -198,13 +197,13 @@ public class ShardedJedisHelper {
         return this.executeJedis((shardedJedis)-> shardedJedis.decr(key));
     }
 
-    // 不关闭 resource ，复用，重连
     private <T> T executeJedis(Function<ShardedJedis, T> function) {
         try (ShardedJedis shardedJedis = shardedJedisPool.getResource()) {
-            return function.apply(shardedJedis);
+            T obj = function.apply(shardedJedis);
+            shardedJedis.close();
+            return obj;
         }
         catch (Exception e) {
-            // e.printStackTrace();
             return null;
         }
     }
