@@ -24,7 +24,7 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 * [√] Use @Path config route
 * [√] Support @Post @Get @Delete @Put
 * [√] Support @Product , json or protobuf
-* [√] Controller 自动注入 HttpRequest HttpResponse Post 和 Get 参数
+* [√] Controller auto inject HttpRequest HttpResponse ...
 * [√] Support Json and Protobuf
 * [√] file upload , support @FileParam
 * [√] Support Freemarker and Thymeleaf
@@ -47,12 +47,12 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 <dependency>
     <groupId>com.doopp</groupId>
     <artifactId>gutty</artifactId>
-    <version>0.14.10</version>
+    <version>0.14.13</version>
 </dependency>
 ```
 
 ```
-compile 'com.doopp:gutty:0.14.10'
+compile 'com.doopp:gutty:0.14.13'
 ```
 
 #### Example
