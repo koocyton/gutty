@@ -60,23 +60,53 @@ compile 'com.doopp:gutty:0.14.10'
 // launch Gutty
 public static void main(String[] args) {
     new Gutty().loadProperties(args)
-                .setBasePackages("com.doopp.gutty.auth")
-                .setMessageConverter(JacksonMessageConverter.class)
-                .setViewResolver(FreemarkerViewResolver.class)
-                .addFilter("/api", ApiFilter.class)
-                .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.auth.dao", PageInterceptor.class)
-                .addModules(new RedisModule() {
-                    @Singleton
-                    @Provides
-                    public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, @Named("redis.user.servers") String userServers) {
-                        return new ShardedJedisHelper(userServers, jedisPoolConfig);
-                    }
-                 })
-                .addInjectorConsumer(injector->{
-                    ScheduledExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(8);
-                    newScheduledThreadPool.scheduleWithFixedDelay(injector.getInstance(AgarTask.class), 1000, 16, TimeUnit.MILLISECONDS);
-                })
-                .start();
+        .setBasePackages("com.doopp.gutty.auth")
+        .setMessageConverter(JacksonMessageConverter.class)
+        .setViewResolver(FreemarkerViewResolver.class)
+        .addFilter("/api", ApiFilter.class)
+        .addMyBatisModule(HikariCPProvider.class, "com.doopp.gutty.auth.dao", PageInterceptor.class)
+        .addModules(
+            new Module() {
+                @Override
+                public void configure(Binder binder) {
+                }
+                @Singleton
+                @Provides
+                @Named("bossEventLoopGroup")
+                public EventLoopGroup bossEventLoopGroup() {
+                    return new NioEventLoopGroup();
+                }
+                @Singleton
+                @Provides
+                @Named("workerEventLoopGroup")
+                public EventLoopGroup workerEventLoopGroup() {
+                    return new NioEventLoopGroup();
+                }
+            },
+            new RedisModule() {
+                @Override
+                protected void initialize() {
+                    bindShardedJedisPoolConfigProvider(ShardedJedisPoolConfigProvider.class);
+                    bindSerializableHelper(JdkSerializableHelper.class);
+                }
+                @Singleton
+                @Provides
+                @Named("userRedis")
+                public ShardedJedisHelper userRedis(JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper, @Named("redis.user.servers") String userServers) {
+                    return new ShardedJedisHelper(userServers, jedisPoolConfig, serializableHelper);
+                }
+                @Singleton
+                @Provides
+                public ShardedJedisHelper testRedis(JedisPoolConfig jedisPoolConfig, SerializableHelper serializableHelper, @Named("redis.test.servers") String userServers) {
+                    return new ShardedJedisHelper(userServers, jedisPoolConfig, serializableHelper);
+                }
+            }
+        )
+        .addInjectorConsumer(injector->{
+            ScheduledExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(8);
+            newScheduledThreadPool.scheduleWithFixedDelay(injector.getInstance(AgarTask.class), 1000, 16, TimeUnit.MILLISECONDS);
+        })
+        .start();
 }
 ```
 

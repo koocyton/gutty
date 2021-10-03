@@ -36,6 +36,26 @@ public class MVCApplication {
             .addFilter("/api", ApiFilter.class)
             // .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
             .addModules(
+                new Module() {
+
+                    @Override
+                    public void configure(Binder binder) {
+                    }
+
+                    @Singleton
+                    @Provides
+                    @Named("bossEventLoopGroup")
+                    public EventLoopGroup bossEventLoopGroup() {
+                        return new NioEventLoopGroup();
+                    }
+
+                    @Singleton
+                    @Provides
+                    @Named("workerEventLoopGroup")
+                    public EventLoopGroup workerEventLoopGroup() {
+                        return new NioEventLoopGroup();
+                    }
+                },
                 new RedisModule() {
                     @Override
                     protected void initialize() {
@@ -53,20 +73,6 @@ public class MVCApplication {
                     @Named("testRedis")
                     public ShardedJedisHelper testRedis(ShardedJedisPoolConfig jedisConfig, SerializableHelper serializableHelper, @Named("redis.test.servers") String userServers) {
                         return new ShardedJedisHelper(userServers, jedisConfig, serializableHelper);
-                    }
-
-                    @Singleton
-                    @Provides
-                    @Named("bossEventLoopGroup")
-                    public EventLoopGroup bossEventLoopGroup() {
-                        return new NioEventLoopGroup();
-                    }
-
-                    @Singleton
-                    @Provides
-                    @Named("workerEventLoopGroup")
-                    public EventLoopGroup workerEventLoopGroup() {
-                        return new NioEventLoopGroup();
                     }
                 },
                 new MyBatisModule() {

@@ -78,10 +78,27 @@ public static void main(String[] args) {
         .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
         // 配置多个 redis
         .addModules(
+            new Module() {
+                @Override
+                public void configure(Binder binder) {
+                }
+                @Singleton
+                @Provides
+                @Named("bossEventLoopGroup")
+                public EventLoopGroup bossEventLoopGroup() {
+                    return new NioEventLoopGroup();
+                }
+                @Singleton
+                @Provides
+                @Named("workerEventLoopGroup")
+                public EventLoopGroup workerEventLoopGroup() {
+                    return new NioEventLoopGroup();
+                }
+            },
             new RedisModule() {
                 @Override
                 protected void initialize() {
-                    bindJedisPoolConfigProvider(JedisPoolConfigProvider.class);
+                    bindShardedJedisPoolConfigProvider(ShardedJedisPoolConfigProvider.class);
                     bindSerializableHelper(JdkSerializableHelper.class);
                 }
                 @Singleton
