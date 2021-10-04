@@ -3,6 +3,7 @@ package com.doopp.gutty;
 import com.doopp.gutty.annotation.websocket.Socket;
 import com.doopp.gutty.annotation.Controller;
 import com.doopp.gutty.annotation.Service;
+import com.doopp.gutty.db.LogImplConfigurationSetting;
 import com.doopp.gutty.filter.Filter;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ViewResolver;
@@ -10,6 +11,7 @@ import com.google.inject.*;
 import com.google.inject.Module;
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import com.google.inject.name.Names;
+import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
@@ -72,7 +74,7 @@ public class Gutty {
         return this;
     }
 
-    public Gutty setMyBatis(Class<? extends Provider<DataSource>> dataSourceProviderClazz, String daoPackageName, Class<? extends Interceptor> interceptorsClass) {
+    public Gutty setMyBatis(Class<? extends Provider<DataSource>> dataSourceProviderClazz, String daoPackageName, Class<? extends Interceptor> interceptorsClass, Class<? extends Log> logImpl) {
         modules.add(new MyBatisModule() {
             @Override
             protected void initialize() {
@@ -81,6 +83,9 @@ public class Gutty {
                 addMapperClasses(daoPackageName);
                 addInterceptorClass(interceptorsClass);
                 mapUnderscoreToCamelCase(true);
+                if (logImpl!=null) {
+                    bindConfigurationSetting(new LogImplConfigurationSetting(logImpl));
+                }
             }
         });
         return this;

@@ -34,7 +34,7 @@ public class MVCApplication {
             .setMessageConverter(JacksonMessageConverter.class)
             .setViewResolver(FreemarkerViewResolver.class)
             .addFilter("/api", ApiFilter.class)
-            // .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class)
+            .setMyBatis(HikariCPProvider.class, "com.doopp.gutty.test.dao", PageInterceptor.class, null)
             .addModules(
                 new Module() {
 
