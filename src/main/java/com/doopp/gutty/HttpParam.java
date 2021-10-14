@@ -19,6 +19,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
@@ -468,10 +469,10 @@ public class HttpParam {
     }
 
     private void buildFormParams() {
-        if (httpRequest.content() != null) {
-            httpRequest.retain();
+        String contentType = httpRequest.headers().get("Content-Type");
+        if (contentType.contains(MediaType.APPLICATION_FORM_URLENCODED) || contentType.contains(MediaType.MULTIPART_FORM_DATA)) {
             // set Request Decoder
-            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest, CharsetUtil.UTF_8);
+            HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest.copy(), CharsetUtil.UTF_8);
             // loop data
             for (InterfaceHttpData data : postDecoder.getBodyHttpDatas()) {
                 String name = data.getName();
