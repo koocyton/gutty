@@ -470,6 +470,9 @@ public class HttpParam {
 
     private void buildFormParams() {
         String contentType = httpRequest.headers().get("Content-Type");
+        if (contentType==null) {
+            return;
+        }
         if (contentType.contains(MediaType.APPLICATION_FORM_URLENCODED) || contentType.contains(MediaType.MULTIPART_FORM_DATA)) {
             // set Request Decoder
             HttpPostRequestDecoder postDecoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), httpRequest.copy(), CharsetUtil.UTF_8);

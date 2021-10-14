@@ -25,6 +25,7 @@ public class HelloController {
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);
 
     @Inject
+    @Named("helloService")
     private HelloService helloService;
 
     @Inject

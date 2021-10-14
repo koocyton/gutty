@@ -217,18 +217,20 @@ public class Gutty {
             // bind class
             private <T> void bind(Binder binder, Class<T> bindClass, Class<?> toClass) {
                 // binder
-                AnnotatedBindingBuilder<T> bindBuilder = binder.bind(bindClass);
+                Class<? extends T> _toClass = (Class<? extends T>) toClass;
                 Service serviceAnnotation = toClass.getAnnotation(Service.class);
                 // 如果 service 有设定名称
                 if (serviceAnnotation!=null && !serviceAnnotation.value().equals("")) {
-                    bindBuilder.annotatedWith(Names.named(serviceAnnotation.value()));
+                    binder.bind(bindClass).annotatedWith(Names.named(serviceAnnotation.value())).to(_toClass).in(Scopes.SINGLETON);
                 }
                 // 如果 bindClass 不等 toClass
-                if (!bindClass.equals(toClass)) {
-                    bindBuilder.to((Class<? extends T>) toClass);
+                else if (!bindClass.equals(toClass)) {
+                    binder.bind(bindClass).to(_toClass).in(Scopes.SINGLETON);
                 }
-                // 单例
-                bindBuilder.in(Scopes.SINGLETON);
+                else {
+                    // 单例
+                    binder.bind(bindClass).in(Scopes.SINGLETON);
+                }
             }
             @Provides
             @Singleton
