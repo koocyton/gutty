@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 @Path("/api")
@@ -76,8 +77,6 @@ public class HelloController {
     @GET
     @Path("/hello/{id}/{name}")
     public String hello3(@PathParam("id") Integer id, @PathParam("name") String name) {
-        logger.info("id {}", id);
-        logger.info("name {}", name);
         return helloService.hello();
     }
 
@@ -94,9 +93,10 @@ public class HelloController {
     @POST
     @Path("/json")
     @Produces("application/json")
-    public User hello2(User user) {
-        logger.info("user {}", user);
-        return user;
+    public List<String> hello2(@QueryParam("id") String id, String[] user) {
+        List<String> sl = Arrays.asList(user);
+        System.out.println(id);
+        return sl;
     }
 
     @POST

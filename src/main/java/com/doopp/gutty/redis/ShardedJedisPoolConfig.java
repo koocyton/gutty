@@ -8,8 +8,8 @@ import java.time.Duration;
 public class ShardedJedisPoolConfig extends GenericObjectPoolConfig<ShardedJedis> {
     public ShardedJedisPoolConfig() {
         this.setTestWhileIdle(true);
-        this.setMinEvictableIdleTime(Duration.ofMillis(60000L));
-        this.setTimeBetweenEvictionRuns(Duration.ofMillis(30000L));
+        this.setMinEvictableIdleTimeMillis(60000L);
+        this.setTimeBetweenEvictionRunsMillis(30000L);
         this.setNumTestsPerEvictionRun(-1);
     }
 }
