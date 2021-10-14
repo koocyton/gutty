@@ -100,7 +100,8 @@ public class Gutty {
     // Json 处理类
     public Gutty setMessageConverter(Class<? extends MessageConverter> clazz) {
         if (clazz!=null) {
-            componentClassMap.put(MessageConverter.class, clazz);
+            // componentClassMap.put(MessageConverter.class, clazz);
+            componentClassMap.put(clazz, MessageConverter.class);
         }
         return this;
     }
@@ -108,7 +109,7 @@ public class Gutty {
     // 模板 处理类
     public Gutty setViewResolver(Class<? extends ViewResolver> clazz) {
         if (clazz!=null) {
-            componentClassMap.put(ViewResolver.class, clazz);
+            componentClassMap.put(clazz, ViewResolver.class);
         }
         return this;
     }
@@ -215,7 +216,7 @@ public class Gutty {
                 }
             }
             // bind class
-            private <T> void bind(Binder binder, Class<T> bindClass, Class<?> toClass) {
+            private <T> void bind(Binder binder, Class<?> toClass, Class<T> bindClass) {
                 // binder
                 Class<? extends T> _toClass = (Class<? extends T>) toClass;
                 Service serviceAnnotation = toClass.getAnnotation(Service.class);
@@ -260,7 +261,7 @@ public class Gutty {
                             Class<?> clazz = Class.forName(className);
                             if (clazz.isAnnotationPresent(Service.class) || clazz.isAnnotationPresent(Controller.class) || clazz.isAnnotationPresent(Socket.class)) {
                                 if (clazz.getInterfaces().length>=1) {
-                                    componentClassMap.put(clazz.getInterfaces()[0], clazz);
+                                    componentClassMap.put(clazz, clazz.getInterfaces()[0]);
                                 }
                                 else {
                                     componentClassMap.put(clazz, clazz);

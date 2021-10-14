@@ -8,23 +8,6 @@ public class HelloServiceImpl implements HelloService {
 
     @Override
     public String hello() {
-        return "hello kunlun !";
+        return "hello hello !";
     }
-
-    //    @Override
-    //    public String hello() {
-    //        Future<String> h = executeGroup.submit(new Callable<String>() {
-    //            @Override
-    //            public String call() throws Exception {
-    //                return "hello world !";
-    //            }
-    //        });
-    //        try {
-    //            return h.get();
-    //        }
-    //        catch (InterruptedException | ExecutionException e) {
-    //
-    //            return "hello liuyi";
-    //        }
-    //    }
 }
