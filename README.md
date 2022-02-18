@@ -35,7 +35,7 @@ Gutty 大概用了一个月的时间来做，参考 Spring 中一些习惯，
 - [x] 支持模板，预置 Freemarker 和 Thymeleaf 的接入
 - [x] 支持 @RequestAttribute，可以用来提供 Session 功能
 - [x] 适配 uri 的 Filter 支持
-- [ ] jdk11 支持
+- [√] jdk11 支持
 
  Websocket
 
