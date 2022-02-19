@@ -20,32 +20,33 @@ Gutty 大概用了一个月的时间来做，参考 Spring 中一些习惯，
 ```
 
 #### 功能列表和完成状况
-```
+
   短连接
 
-* [√] Guice 和 Netty 整合
-* [√] 启动时扫描包，为 @Controller 和 @Socket 的类配置路由
-* [√] 自动绑定扫描到的 @Service 的类(普通的绑定 和 按名称绑定)
-* [√] @Post @Get @Delete @Put 的 httpMethod 支持
-* [√] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
-* [√] 控制类下的方法参数传入，支持 @CookieParm @QueryParam @PathParam @FormParam
-* [√] Controller 识别 和输出 Json 请求
-* [√] Controller 识别 Protobuf 请求
-* [√] 可以通过 @FileParam 来上传文件
-* [√] 支持模板，预置 Freemarker 和 Thymeleaf 的接入
-* [√] 支持 @RequestAttribute，可以用来提供 Session 功能
-* [√] 适配 uri 的 Filter 支持
+- [x] Guice 和 Netty 整合
+- [x] 启动时扫描包，为 @Controller 和 @Socket 的类配置路由
+- [x] 自动绑定扫描到的 @Service 的类(普通的绑定 和 按名称绑定)
+- [x] @Post @Get @Delete @Put 的 httpMethod 支持
+- [x] 通过 @Product 识别返回值是 Json 还是 模板，或是 Protobuf 或是 Binary
+- [x] 控制类下的方法参数传入，支持 @CookieParm @QueryParam @PathParam @FormParam
+- [x] Controller 识别 和输出 Json 请求
+- [x] Controller 识别 Protobuf 请求
+- [x] 可以通过 @FileParam 来上传文件
+- [x] 支持模板，预置 Freemarker 和 Thymeleaf 的接入
+- [x] 支持 @RequestAttribute，可以用来提供 Session 功能
+- [x] 适配 uri 的 Filter 支持
+- [ ] jdk11 支持
 
  Websocket
 
-* [√] 整合 Websocket，通过 @Socket 指定类接收长连接数据
-* [√] Websocket 的路由通过类的 @Path 完成配置
-* [√] 支持 @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong 完成不同数据包的传递
-* [√] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
-* [√] 添加 protobuf， json 的自动编码，解码到变量
-* [√] 适配 uri 的 Filter 支持
-* [√] @Socket 通过配置 subprotocol 来支持 Sec-WebSocket-Protocol 
-```
+- [x] 整合 Websocket，通过 @Socket 指定类接收长连接数据
+- [x] Websocket 的路由通过类的 @Path 完成配置
+- [x] 支持 @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong 完成不同数据包的传递
+- [x] 长连接 WebsocketFrame 的值可自动传入到你的 socket handler
+- [x] 添加 protobuf， json 的自动编码，解码到变量
+- [x] 适配 uri 的 Filter 支持
+- [x] @Socket 通过配置 subprotocol 来支持 Sec-WebSocket-Protocol 
+
 
 #### 引入
 ```
