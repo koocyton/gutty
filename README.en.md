@@ -15,32 +15,32 @@ Gutty is a fast web server , use Google Guice and Netty to build !
 ```
 
 #### Function list and completion status
-```
+
   短连接
 
-* [√] Integrating Guice and netty
-* [√] Custom add Guice`s model
-* [√] Support @Service @Controller @Socket
-* [√] Use @Path config route
-* [√] Support @Post @Get @Delete @Put
-* [√] Support @Product , json or protobuf
-* [√] Controller auto inject HttpRequest HttpResponse ...
-* [√] Support Json and Protobuf
-* [√] file upload , support @FileParam
-* [√] Support Freemarker and Thymeleaf
-* [√] Session  RequestAttribute
-* [√] support filter
+- [x] Integrating Guice and netty
+- [x] Custom add Guice`s model
+- [x] Support @Service @Controller @Socket
+- [x] Use @Path config route
+- [x] Support @Post @Get @Delete @Put
+- [x] Support @Product , json or protobuf
+- [x] Controller auto inject HttpRequest HttpResponse ...
+- [x] Support Json and Protobuf
+- [x] file upload , support @FileParam
+- [x] Support Freemarker and Thymeleaf
+- [x] Session  RequestAttribute
+- [x] support filter
 
  Websocket
 
-* [√] Integrating Websocket by @Socket
-* [√] Use @Path config websocket route
-* [√] Support recevie @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong
-* [√] Support WebsocketFrame to revcive params
-* [√] protobuf , json auto encode & decode
-* [√] support filter
-* [√] support Sec-WebSocket-Protocol 
-```
+- [x] Integrating Websocket by @Socket
+- [x] Use @Path config websocket route
+- [x] Support recevie @Open @Close @Message @TextMessage @BinaryMessage @Ping @Pong
+- [x] Support WebsocketFrame to revcive params
+- [x] protobuf , json auto encode & decode
+- [x] support filter
+- [x] support Sec-WebSocket-Protocol 
+
 
 #### import to project
 ```
