@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -58,7 +59,7 @@ public class Dispatcher {
         }
     }
 
-    public byte[] executeHttpRoute(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws Exception {
+    public byte[] executeHttpRoute(Injector injector, ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         // get route
         HttpRoute httpRoute = this.getHttpRoute(httpRequest.method(), httpRequest.uri());
         if (httpRoute ==null) {
@@ -72,9 +73,15 @@ public class Dispatcher {
         // ModelMap
         ModelMap modelMap = new ModelMap();
         // method invoke
-        Object result = (httpRoute.getParameters().length == 0)
-                ? httpRoute.getMethod().invoke(controller)
-                : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+        Object result;
+        try {
+            result = (httpRoute.getParameters().length == 0)
+                    ? httpRoute.getMethod().invoke(controller)
+                    : httpRoute.getMethod().invoke(controller, HttpParam.builder(injector, ctx, httpRequest, httpResponse).setModelMap(modelMap).getParams(httpRoute.getParameters(), httpRoute.getPathParamMap()));
+        }
+        catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
         // content type
         String contentType = methodProductsValue(httpRoute.getMethod());
         // 如果要求返回 JSON

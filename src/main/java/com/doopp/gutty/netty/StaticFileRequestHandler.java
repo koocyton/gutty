@@ -21,7 +21,7 @@ public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequ
     }
 
     @Override
-    public void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws IOException {
+    public void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
         String requestUri = httpRequest.uri();
         int indexOf = requestUri.indexOf("?");
         if (indexOf!=-1) {
@@ -42,10 +42,15 @@ public class StaticFileRequestHandler extends AbstractFilterHandler<FullHttpRequ
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         byte[] bs = new byte[1024];
         int len;
-        while ((len = ins.read(bs)) != -1) {
-            bout.write(bs, 0, len);
+        try {
+            while ((len = ins.read(bs)) != -1) {
+                bout.write(bs, 0, len);
+            }
+            ins.close();
         }
-        ins.close();
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // init httpResponse
         // FullHttpResponse httpResponse = new DefaultFullHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.OK);

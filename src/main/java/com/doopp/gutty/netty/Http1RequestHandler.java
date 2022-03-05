@@ -7,6 +7,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 
+import javax.xml.ws.RequestWrapper;
 import java.lang.reflect.InvocationTargetException;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
@@ -26,24 +27,8 @@ public class Http1RequestHandler extends AbstractFilterHandler<FullHttpRequest> 
 
     @Override
     public void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) {
-        byte[] result;
         // 执行路由
-        try {
-            result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
-        }
-        catch (NotFoundException e) {
-            ctx.fireChannelRead(httpRequest.retain());
-            return;
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (InvocationTargetException e) {
-            throw new RuntimeException(e.getCause());
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        byte[] result = Dispatcher.getInstance().executeHttpRoute(injector, ctx, httpRequest, httpResponse);
         // 写入内容
         httpResponse.content().writeBytes(Unpooled.copiedBuffer(result));
         // set length

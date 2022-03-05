@@ -67,6 +67,6 @@ public abstract class AbstractFilterHandler<I> extends SimpleChannelInboundHandl
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
-    public abstract void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse) throws Exception;
+    public abstract void handleRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest, FullHttpResponse httpResponse);
 
 }

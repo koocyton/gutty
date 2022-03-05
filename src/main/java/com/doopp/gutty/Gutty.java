@@ -269,7 +269,7 @@ public class Gutty {
                             }
                         }
                         catch (ClassNotFoundException e) {
-                            e.printStackTrace();
+                            throw new RuntimeException(e);
                         }
                         return FileVisitResult.CONTINUE;
                     }
@@ -307,11 +307,6 @@ public class Gutty {
     }
 
     public static <T> T getInstance(Injector injector, Class<T> clazz) {
-        try {
-            return injector.getInstance(clazz);
-        }
-        catch (Exception e) {
-            return null;
-        }
+        return injector.getInstance(clazz);
     }
 }

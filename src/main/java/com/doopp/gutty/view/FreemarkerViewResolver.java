@@ -20,8 +20,7 @@ public class FreemarkerViewResolver implements ViewResolver {
             template.process(modelMap, new OutputStreamWriter(outputStream));
             return outputStream.toString("UTF-8");
         }
-        catch(IOException | TemplateException e)
-        {
+        catch(IOException | TemplateException e) {
             throw new RuntimeException(e.getMessage());
         }
     }
