@@ -435,7 +435,7 @@ public class HttpParam {
             randomAccessFile.seek(0);
             randomAccessFile.write(fileUpload.get());
         }
-        catch(Exception ignored) {}
+        catch (Exception ignored) {}
     }
 
     private void buildHeaderParams() {

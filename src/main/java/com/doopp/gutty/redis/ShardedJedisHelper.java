@@ -87,7 +87,7 @@ public class ShardedJedisHelper {
         try {
             desObj = serializableHelper.deserialize(objectByte, clazz);
         }
-        catch(Exception e) {
+        catch (Exception e) {
             return null;
         }
         return clazz.cast(desObj);

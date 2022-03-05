@@ -13,6 +13,7 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -143,7 +144,7 @@ public class  WebSocketServerHandler extends AbstractFilterHandler<Object> {
                     method.invoke(socket, HttpParam.builder(injector, ctx, httpRequest).setWebSocketFrame((WebSocketFrame) msg).getParams(method.getParameters(), socketRoute.getPathParamMap()));
                 }
             }
-            catch(Exception e) {
+            catch(IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
         }
