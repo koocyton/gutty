@@ -52,24 +52,24 @@ public class SocketRoute {
                 }
                 textMethodList.add(method);
             }
-            else if (method.getAnnotation(JsonFrame.class)!=null) {
-                if (textMethodList==null) {
-                    textMethodList = new ArrayList<>();
-                }
-                textMethodList.add(method);
-            }
+            // else if (method.getAnnotation(JsonFrame.class)!=null) {
+            //    if (textMethodList==null) {
+            //        textMethodList = new ArrayList<>();
+            //    }
+            //    textMethodList.add(method);
+            // }
             else if (method.getAnnotation(BinaryMessage.class)!=null) {
                 if (binaryMethodList==null) {
                     binaryMethodList = new ArrayList<>();
                 }
                 binaryMethodList.add(method);
             }
-            else if (method.getAnnotation(ProtobufFrame.class)!=null) {
-                if (binaryMethodList==null) {
-                    binaryMethodList = new ArrayList<>();
-                }
-                binaryMethodList.add(method);
-            }
+            // else if (method.getAnnotation(ProtobufFrame.class)!=null) {
+            //    if (binaryMethodList==null) {
+            //        binaryMethodList = new ArrayList<>();
+            //    }
+            //    binaryMethodList.add(method);
+            // }
             else if (method.getAnnotation(Close.class)!=null) {
                 if (closeMethodList==null) {
                     closeMethodList = new ArrayList<>();
