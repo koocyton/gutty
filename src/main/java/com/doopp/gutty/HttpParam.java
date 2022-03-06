@@ -1,5 +1,6 @@
 package com.doopp.gutty;
 
+import com.doopp.gutty.annotation.RequestBody;
 import com.doopp.gutty.annotation.websocket.JsonFrame;
 import com.doopp.gutty.annotation.websocket.ProtobufFrame;
 import com.doopp.gutty.annotation.FileParam;
@@ -19,8 +20,6 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.openmbean.InvalidKeyException;
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
@@ -29,6 +28,8 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -170,9 +171,30 @@ public class HttpParam {
             // Request Attribute
             else if (parameter.getAnnotation(RequestAttribute.class) != null) {
                 String annotationKey = parameter.getAnnotation(RequestAttribute.class).value();
+                boolean required = parameter.getAnnotation(RequestAttribute.class).required();
                 Attribute<Object> attr = ctx.channel().attr(AttributeKey.valueOf(annotationKey));
-                params[ii] = (attr!=null) ? attr.get() : null;
+                if (attr.get()==null && required) {
+                    throw new IllegalArgumentException(parameter.getName() + " can not is null");
+                }
+                params[ii] = attr.get();
             }
+            // Request Body
+            else if (parameter.getAnnotatedType() instanceof RequestBody) {
+                boolean required = parameter.getAnnotation(RequestBody.class).required();
+                if (httpRequest.content()==null && required) {
+                    throw new IllegalArgumentException(parameter.getName() + " can not is null");
+                }
+                params[ii] = jsonParamCase(httpRequest.content(), parameterClazz);
+                if (params[ii]==null && required) {
+                    throw new IllegalArgumentException(parameter.getName() + " can not is null");
+                }
+            }
+            // Request Session
+            // else if (parameter.getAnnotatedType() instanceof SessionAttribute) {
+            //    String annotationKey = parameter.getAnnotation(SessionAttribute.class).value();
+            //    Attribute<Object> attr = ctx.channel().attr(AttributeKey.valueOf(annotationKey));
+            //    params[ii] = (attr!=null) ? attr.get() : null;
+            // }
             // CookieParam : Set<Cookie>
             else if (parameter.getAnnotation(CookieParam.class) != null) {
                 String annotationKey = parameter.getAnnotation(CookieParam.class).value();
@@ -210,9 +232,9 @@ public class HttpParam {
                 }
             }
             // json
-            else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) !=null && httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains(MediaType.APPLICATION_JSON)) {
-                params[ii] = jsonParamCase(httpRequest.content(), parameterClazz);
-            }
+            // else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) !=null && httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains(MediaType.APPLICATION_JSON)) {
+            //    params[ii] = jsonParamCase(httpRequest.content(), parameterClazz);
+            // }
             // protobuf
             else if (httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE) !=null && httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE).contains("application/x-protobuf")) {
                 params[ii] = protobufParamCase(httpRequest.content(), parameterClazz);
