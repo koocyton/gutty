@@ -8,10 +8,12 @@ import com.doopp.gutty.annotation.RequestAttribute;
 import com.doopp.gutty.json.MessageConverter;
 import com.doopp.gutty.view.ModelMap;
 import com.google.inject.Injector;
+import com.sun.nio.sctp.IllegalReceiveException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.Attribute;
@@ -28,8 +30,6 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -110,7 +110,6 @@ public class HttpParam {
 
         this.buildHeaderParams();
         this.buildCookieParams();
-        // this.buildPathParams(pathParams);
         this.buildQueryParams();
         this.buildFormParams();
 
@@ -179,7 +178,7 @@ public class HttpParam {
                 params[ii] = attr.get();
             }
             // Request Body
-            else if (parameter.getAnnotatedType() instanceof RequestBody) {
+            else if (parameter.getAnnotation(RequestBody.class) != null) {
                 boolean required = parameter.getAnnotation(RequestBody.class).required();
                 if (httpRequest.content()==null && required) {
                     throw new IllegalArgumentException(parameter.getName() + " can not is null");
@@ -222,10 +221,23 @@ public class HttpParam {
             }
             // upload file
             else if (parameter.getAnnotation(FileParam.class) != null) {
-                String annotationKey = parameter.getAnnotation(FileParam.class).value();
-                String annotationPath = parameter.getAnnotation(FileParam.class).path();
+                String key = parameter.getAnnotation(FileParam.class).value();
+                String path = parameter.getAnnotation(FileParam.class).path();
+                String suffix = parameter.getAnnotation(FileParam.class).suffix();
+                long maximum = parameter.getAnnotation(FileParam.class).maximum();
+                // if is put file
+                if (httpRequest.method() == HttpMethod.PUT) {
+                    byte[] fileByteArray = httpRequest.content().array();
+                    if (fileByteArray.length>maximum) {
+                        throw new IllegalReceiveException("File size exceeds limit");
+                    }
+                    File putFile = new File(path + "/" + UUID.randomUUID() + "." + suffix);
+                    saveFile(putFile, fileByteArray);
+                    params[ii] = putFile;
+                    continue;
+                }
                 try {
-                    params[ii] = fileParamCast(fileParams.get(annotationKey), annotationPath, parameterClazz);
+                    params[ii] = fileParamCast(fileParams.get(key), path, parameterClazz);
                 }
                 catch (IOException e) {
                     throw new RuntimeException(e);
@@ -256,13 +268,18 @@ public class HttpParam {
     }
 
     private <T> T jsonParamCase(ByteBuf content, Class<T> parameterClazz) {
-        // MessageConverter messageConverter = injector.getInstance(MessageConverter.class);
         MessageConverter messageConverter = Gutty.getInstance(injector, MessageConverter.class);
         if (messageConverter == null) {
             return null;
         }
         byte[] bytes = new byte[content.capacity()];
         content.readBytes(bytes);
+        if (parameterClazz==String.class) {
+            return parameterClazz.cast(new String(bytes));
+        }
+        else if (parameterClazz==Integer.class) {
+            return parameterClazz.cast(Integer.valueOf(new String(bytes)));
+        }
         return messageConverter.fromJson(new String(bytes), parameterClazz);
     }
 
@@ -458,6 +475,15 @@ public class HttpParam {
             randomAccessFile.write(fileUpload.get());
         }
         catch (Exception ignored) {}
+    }
+
+    private File saveFile(File file, byte[] bytes) {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
+            randomAccessFile.seek(0);
+            randomAccessFile.write(bytes);
+        }
+        catch (Exception ignored) {}
+        return file;
     }
 
     private void buildHeaderParams() {

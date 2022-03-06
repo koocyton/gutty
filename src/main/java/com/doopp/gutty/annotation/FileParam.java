@@ -10,5 +10,11 @@ public @interface FileParam {
     String value();
 
     String path() default "";
+
+    String suffix() default "";
+
+    long maximum() default 10000000; // 10M
+
+    boolean required() default false;
 }
 

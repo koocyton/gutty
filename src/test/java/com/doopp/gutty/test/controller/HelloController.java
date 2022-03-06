@@ -1,6 +1,7 @@
 package com.doopp.gutty.test.controller;
 
 import com.doopp.gutty.annotation.RequestAttribute;
+import com.doopp.gutty.annotation.RequestBody;
 import com.doopp.gutty.test.dao.UserDao;
 import com.doopp.gutty.test.pojo.User;
 import com.doopp.gutty.test.service.HelloService;
@@ -17,8 +18,9 @@ import javax.ws.rs.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-@Path("/api")
+@Path("/test/api")
 @Controller
 public class HelloController {
 
@@ -106,5 +108,12 @@ public class HelloController {
     public String upload(@FileParam(value = "file", path = "d:/tmp") File uploadFile) {
         logger.info("file {}", uploadFile);
         return "hello";
+    }
+
+    @POST
+    @Path("/json-post")
+    @Produces("application/json")
+    public String jsonPost(@RequestBody String postMap) {
+        return postMap;
     }
 }
