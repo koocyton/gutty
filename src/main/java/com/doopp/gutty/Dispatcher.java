@@ -2,9 +2,13 @@ package com.doopp.gutty;
 
 import com.doopp.gutty.annotation.websocket.*;
 import com.doopp.gutty.json.MessageConverter;
+import com.doopp.gutty.redis.JdkSerializableHelper;
+import com.doopp.gutty.redis.SerializableHelper;
 import com.doopp.gutty.view.ModelMap;
 import com.doopp.gutty.view.ViewResolver;
 import com.google.inject.Injector;
+import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.GeneratedMessageV3;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpMethod;
@@ -103,7 +107,16 @@ public class Dispatcher {
         if (result instanceof String) {
             return ((String) result).getBytes();
         }
-        return result.toString().getBytes();
+        else if (result instanceof byte[]) {
+            return (byte[]) result;
+        }
+        else if (result instanceof GeneratedMessageV3) {
+            return ((GeneratedMessageV3) result).toByteArray();
+        }
+        else if (result instanceof GeneratedMessage) {
+            return ((GeneratedMessage) result).toByteArray();
+        }
+        return (new JdkSerializableHelper()).serialize(result);
     }
 
     public void addSocketRoute(String requestUri, Class<?> clazz) {
