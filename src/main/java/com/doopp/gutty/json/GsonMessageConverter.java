@@ -12,7 +12,7 @@ public class GsonMessageConverter implements MessageConverter {
     public GsonMessageConverter() {
         this.gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            // .serializeNulls()
+            .serializeNulls()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .setLongSerializationPolicy(LongSerializationPolicy.STRING)
             .create();
