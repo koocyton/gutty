@@ -1,0 +1,38 @@
+# idea project files
+.idea
+.gradle
+.vscode
+.meghanada
+.factorypath
+*.iml
+build
+out
+gradlew
+gradlew.bat
+gradle
+*/upload/*
+# netbeans project files
+nbproject
+/target
+/test.properties
+
+# zend studio for eclipse project files
+.buildpath
+.project
+.settings
+
+# windows thumbnail cache
+Thumbs.db
+
+# Mac cache
+dump.rdb
+
+# Mac DS_Store Files
+.DS_Store
+
+# project
+develop.properties
+*/.classpath
+*/bin
+.classpath
+
