@@ -1,11 +1,11 @@
-package com.doopp.gutty.annotation.websocket;
+package com.doopp.gutty.annotation;
 
 import java.lang.annotation.*;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Socket {
+public @interface WebSocket {
 
     String subprotocol() default "";
 }

@@ -1,5 +1,6 @@
 package com.doopp.gutty;
 
+import com.doopp.gutty.annotation.WebSocket;
 import com.doopp.gutty.annotation.websocket.*;
 
 import java.lang.reflect.Method;
@@ -30,8 +31,8 @@ public class SocketRoute {
         this.clazz = clazz;
 
         // socket Annotation
-        Socket socketAnnotation = clazz.getAnnotation(Socket.class);
-        subprotocol = socketAnnotation.subprotocol().equals("") ? null : socketAnnotation.subprotocol();
+        WebSocket webSocketAnnotation = clazz.getAnnotation(WebSocket.class);
+        subprotocol = webSocketAnnotation.subprotocol().equals("") ? null : webSocketAnnotation.subprotocol();
 
         for (Method method : clazz.getMethods()) {
             if (method.getAnnotation(Open.class)!=null) {
