@@ -21,6 +21,7 @@ import org.mybatis.guice.datasource.hikaricp.HikariCPProvider;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MVCApplication {
 
@@ -28,17 +29,24 @@ public class MVCApplication {
     @Test
     public void testEventLoop() {
         NioEventLoopGroup eventLoop = new NioEventLoopGroup(8);
+        AtomicInteger counter = new AtomicInteger(0);
         Long beginTime = System.currentTimeMillis();
-        for (int ii = 0; ii < 1000; ii++) {
-            final int mm = ii;
+        while(true) {
+            counter.getAndIncrement();
+            if (counter.get()>1000) {
+                break;
+            }
+            final int mm = counter.get();
             eventLoop.next().execute(() -> {
                 try {
-                    Thread.sleep(20000);
-                    if (mm > 999) {
+                    Thread.sleep(2);
+                    if (mm > 990) {
                         System.out.println(String.format("testThread %s", mm));
                     }
                 }
-                catch(Exception ignore) {;};
+                catch(Exception e) {
+                    System.out.println("zz");
+                };
             });
         }
         Long endTime = System.currentTimeMillis();
@@ -54,7 +62,7 @@ public class MVCApplication {
             executorService.execute(() -> {
                 try {
                     Thread.sleep(20000);
-                    if (mm > 999) {
+                    if (mm > 99) {
                         System.out.println(String.format("testThread %s", mm));
                     }
                 }
